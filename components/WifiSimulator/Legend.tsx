@@ -15,7 +15,7 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
           {WALL_MATERIALS.map(material => (
             <div key={material.value} className="flex items-center">
               <div 
-                className="w-4 h-4 mr-2" 
+                className="w-4 h-4 mr-2 rounded-md" 
                 style={{ backgroundColor: material.color }} 
               />
               <span>{material.label}</span>
@@ -27,7 +27,7 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
       {mode === 'simulate' && (
         <div className="signal-legend">
           <h3 className="font-bold mb-2">Signal Strength:</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex gap-2">
             {SIGNAL_STRENGTH_LEVELS.map(level => (
               <div key={level.label} className="flex items-center">
                 <div 

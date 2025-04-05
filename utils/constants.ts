@@ -1,12 +1,12 @@
 import { WallMaterial } from '@/types';
 
 export const defaultFloorPlanSize = {
-  width: 1600,
-  height: 900
+  width: 800,
+  height: 600
 };
 
 export const ROUTER_POWER = 20; // dBm - typical for home routers
-export const FREQUENCY = 2.4; // GHz - standard WiFi frequency
+export const FREQUENCY = 5 // GHz - standard WiFi frequency
 
 export const WALL_ATTENUATION: Record<WallMaterial, number> = {
   'drywall': 3,     // dB
