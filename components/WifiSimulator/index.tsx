@@ -208,7 +208,7 @@ const WifiSimulator = () => {
       
       {/* Floor plan image controls */}
       <div className="image-controls mb-4 p-3 border rounded bg-gray-50">
-        <h3 className="font-bold mb-2">Floor Plan Background</h3>
+        <h3 className="font-bold mb-2">Floor Plan Background (use this to have a stencil/guide to draw your floor plan on the canvas.)</h3>
         <div className="flex flex-wrap items-center gap-4">
           <input
             ref={fileInputRef}
