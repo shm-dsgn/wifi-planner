@@ -31,7 +31,7 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
             {SIGNAL_STRENGTH_LEVELS.map(level => (
               <div key={level.label} className="flex items-center">
                 <div 
-                  className="w-4 h-4 mr-2" 
+                  className="w-4 h-4 mr-2 rounded-md" 
                   style={{ backgroundColor: level.color }} 
                 />
                 <span>{level.label}</span>
