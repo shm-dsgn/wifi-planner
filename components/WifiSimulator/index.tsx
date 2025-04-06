@@ -12,10 +12,14 @@ import useLocalStorage from '@/hooks/useLocalStorage';
 import { defaultFloorPlanSize } from '@/utils/constants';
 
 const WifiSimulator = () => {
+  // Increase canvas size
+  const canvasWidth = 1200;
+  const canvasHeight = 650;
+
   const [floorPlan, setFloorPlan] = useLocalStorage('floorPlan', {
     walls: [] as Wall[],
-    width: 800,
-    height: 600,
+    width: canvasWidth,
+    height: canvasHeight,
   });
   
   const [routerPosition, setRouterPosition] = useState<Position>({ x: Math.floor(floorPlan.width / 2), y: Math.floor(floorPlan.height / 2) });
@@ -28,10 +32,25 @@ const WifiSimulator = () => {
   const [imageOpacity, setImageOpacity] = useState(0.5);
   const [isDraggingRouter, setIsDraggingRouter] = useState(false);
   
+  // Add history states for undo/redo functionality
+  const [history, setHistory] = useState<Wall[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  
   // Set fixed wall width
   const WALL_WIDTH = 10; // This is our fixed wall width in pixels
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Initialize history when component mounts
+  useEffect(() => {
+    if (history.length === 0 && floorPlan.walls.length > 0) {
+      setHistory([floorPlan.walls]);
+      setHistoryIndex(0);
+    } else if (history.length === 0) {
+      setHistory([[]]);
+      setHistoryIndex(0);
+    }
+  }, []);
   
   // Calculate signal strength when needed
   useEffect(() => {
@@ -110,17 +129,47 @@ const WifiSimulator = () => {
       currentWall.y2 !== undefined &&
       (Math.abs(currentWall.x1 - currentWall.x2) > 5 || Math.abs(currentWall.y1 - currentWall.y2) > 5)
     ) {
+      const newWalls = [...floorPlan.walls, currentWall as Wall];
+      
+      // Update the floor plan
       setFloorPlan({
         ...floorPlan,
-        walls: [
-          ...floorPlan.walls,
-          currentWall as Wall
-        ]
+        walls: newWalls
       });
+      
+      // Update history for undo/redo
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(newWalls);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
     }
     
     setDrawing(false);
     setCurrentWall(null);
+  };
+
+  // Undo function
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setFloorPlan({
+        ...floorPlan,
+        walls: history[newIndex]
+      });
+    }
+  };
+  
+  // Redo function
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setFloorPlan({
+        ...floorPlan,
+        walls: history[newIndex]
+      });
+    }
   };
 
   const clearFloorPlan = () => {
@@ -128,6 +177,11 @@ const WifiSimulator = () => {
       ...floorPlan,
       walls: []
     });
+    
+    // Update history for undo/redo
+    const newHistory = [...history, []];
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
   };
   
   const toggleMode = () => {
@@ -189,13 +243,17 @@ const WifiSimulator = () => {
   };
   
   return (
-    <div className="wifi-simulator max-w-4xl mx-auto">
+    <div className="wifi-simulator mx-auto">
       <div className="controls flex flex-wrap justify-between mb-4">
         {mode === 'draw' ? (
           <DrawingTools 
             selectedMaterial={selectedMaterial}
             onMaterialChange={handleMaterialChange}
             onClear={clearFloorPlan}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < history.length - 1}
           />
         ) : (
           <SimulationControls
@@ -257,108 +315,112 @@ const WifiSimulator = () => {
         </div>
       </div>
       
-      <Stage 
-        width={floorPlan.width} 
-        height={floorPlan.height}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        className="bg-white"
-      >
-        {/* Background Layer */}
-        <Layer>
-          <Rect 
-            x={0} 
-            y={0} 
-            width={floorPlan.width}
-            height={floorPlan.height}
-            fill="white"
-            stroke="gray"
-          />
-          
-          {/* Floor plan image */}
-          {backgroundImage && (
-            <KonvaImage
-              image={backgroundImage}
-              x={(floorPlan.width - backgroundImage.width) / 2}
-              y={(floorPlan.height - backgroundImage.height) / 2}
-              width={backgroundImage.width}
-              height={backgroundImage.height}
-              opacity={imageOpacity}
-            />
-          )}
-        </Layer>
-        
-        {/* Signal strength visualization layer */}
-        {mode === 'simulate' && (
+      {/* Canvas container with proper styling to center it */}
+      <div className="canvas-container mx-auto" style={{ width: `${canvasWidth}px` }}>
+        <Stage 
+          width={canvasWidth} 
+          height={canvasHeight}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          className="bg-white border border-gray-300"
+          style={{ display: 'block' }}
+        >
+          {/* Background Layer */}
           <Layer>
-            {signalStrengthMap.map((point, index) => (
-              <Rect
-                key={index}
-                x={point.x - 5}
-                y={point.y - 5}
-                width={10}
-                height={10}
-                fill={point.color}
-                opacity={0.5}
+            <Rect 
+              x={0} 
+              y={0} 
+              width={canvasWidth}
+              height={canvasHeight}
+              fill="white"
+              stroke="gray"
+            />
+            
+            {/* Floor plan image */}
+            {backgroundImage && (
+              <KonvaImage
+                image={backgroundImage}
+                x={(canvasWidth - backgroundImage.width) / 2}
+                y={(canvasHeight - backgroundImage.height) / 2}
+                width={backgroundImage.width}
+                height={backgroundImage.height}
+                opacity={imageOpacity}
+              />
+            )}
+          </Layer>
+          
+          {/* Signal strength visualization layer */}
+          {mode === 'simulate' && (
+            <Layer>
+              {signalStrengthMap.map((point, index) => (
+                <Rect
+                  key={index}
+                  x={point.x - 5}
+                  y={point.y - 5}
+                  width={10}
+                  height={10}
+                  fill={point.color}
+                  opacity={0.5}
+                />
+              ))}
+            </Layer>
+          )}
+          
+          {/* Walls Layer */}
+          <Layer>
+            {floorPlan.walls.map((wall) => (
+              <Line
+                key={wall.id}
+                points={[wall.x1, wall.y1, wall.x2, wall.y2]}
+                stroke={wall.color}
+                strokeWidth={wall.width || WALL_WIDTH}
+                lineCap="round"
+                lineJoin="round"
               />
             ))}
+            
+            {/* Current Wall being drawn */}
+            {currentWall && (
+              <Line
+                points={[
+                  currentWall.x1 || 0, 
+                  currentWall.y1 || 0, 
+                  currentWall.x2 || 0, 
+                  currentWall.y2 || 0
+                ]}
+                stroke={currentWall.color || '#000'}
+                strokeWidth={WALL_WIDTH}
+                lineCap="round"
+                lineJoin="round"
+                opacity={0.7}
+              />
+            )}
           </Layer>
-        )}
-        
-        {/* Walls Layer */}
-        <Layer>
-          {floorPlan.walls.map((wall) => (
-            <Line
-              key={wall.id}
-              points={[wall.x1, wall.y1, wall.x2, wall.y2]}
-              stroke={wall.color}
-              strokeWidth={wall.width || WALL_WIDTH}
-              lineCap="round"
-              lineJoin="round"
-            />
-          ))}
           
-          {/* Current Wall being drawn */}
-          {currentWall && (
-            <Line
-              points={[
-                currentWall.x1 || 0, 
-                currentWall.y1 || 0, 
-                currentWall.x2 || 0, 
-                currentWall.y2 || 0
-              ]}
-              stroke={currentWall.color || '#000'}
-              strokeWidth={WALL_WIDTH}
-              lineCap="round"
-              lineJoin="round"
-              opacity={0.7}
+          {/* Router Layer */}
+          <Layer>
+            <Circle
+              x={routerPosition.x}
+              y={routerPosition.y}
+              radius={10}
+              fill="#3498db"
+              stroke="#2980b9"
+              strokeWidth={2}
+              draggable={true}
+              onDragStart={handleRouterDragStart}
+              onDragEnd={handleRouterDragEnd}
             />
-          )}
-        </Layer>
-        
-        {/* Router Layer */}
-        <Layer>
-          <Circle
-            x={routerPosition.x}
-            y={routerPosition.y}
-            radius={10}
-            fill="#3498db"
-            stroke="#2980b9"
-            strokeWidth={2}
-            draggable={true}
-            onDragStart={handleRouterDragStart}
-            onDragEnd={handleRouterDragEnd}
-          />
-        </Layer>
-      </Stage>
+          </Layer>
+        </Stage>
+      </div>
       
       <Legend mode={mode} />
       
       <div className="instructions mt-4">
         <h3 className="font-bold">Instructions:</h3>
         {mode === 'draw' ? (
-          <p>Click and drag to draw walls. Walls have a fixed width of {WALL_WIDTH}px. Select wall material from the dropdown. Upload a floor plan image to use as a stencil.</p>
+          <p>Click and drag to draw walls. Use Undo/Redo buttons to fix mistakes. Walls have a fixed width of {WALL_WIDTH}px. Select wall material from the dropdown. Upload a floor plan image to use as a stencil.</p>
         ) : (
           <p>Drag the blue router to see how signal strength changes. Use "Find Optimal Position" to automatically place the router.</p>
         )}

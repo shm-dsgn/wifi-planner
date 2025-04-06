@@ -7,6 +7,10 @@ interface DrawingToolsProps {
   selectedMaterial: WallMaterial;
   onMaterialChange: (material: WallMaterial) => void;
   onClear: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const materialOptions = [
@@ -22,7 +26,11 @@ const materialOptions = [
 const DrawingTools: React.FC<DrawingToolsProps> = ({ 
   selectedMaterial, 
   onMaterialChange, 
-  onClear 
+  onClear,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo
 }) => {
   return (
     <div className="drawing-tools flex items-center gap-3">
@@ -32,6 +40,26 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
         options={materialOptions}
         label="Wall Material"
       />
+      
+      <div className="history-buttons flex gap-2">
+        <Button 
+          onClick={onUndo} 
+          disabled={!canUndo}
+          variant="secondary"
+          title="Undo"
+        >
+          Undo
+        </Button>
+        
+        <Button 
+          onClick={onRedo} 
+          disabled={!canRedo}
+          variant="secondary"
+          title="Redo"
+        >
+          Redo
+        </Button>
+      </div>
       
       <Button onClick={onClear} variant="danger">
         Clear Walls
