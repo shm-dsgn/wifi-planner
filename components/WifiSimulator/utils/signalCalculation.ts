@@ -76,6 +76,8 @@ export const calculateSignalStrength = (
   resolution: number = 10
 ): SignalPoint[] => {
   const points: SignalPoint[] = [];
+
+  console.log(floorPlan)
   
   // Calculate signal strength at grid points
   for (let x = 0; x <= floorPlan.width; x += resolution) {

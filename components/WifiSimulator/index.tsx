@@ -12,14 +12,11 @@ import useLocalStorage from '@/hooks/useLocalStorage';
 import { defaultFloorPlanSize } from '@/utils/constants';
 
 const WifiSimulator = () => {
-  // Increase canvas size
-  const canvasWidth = 1200;
-  const canvasHeight = 650;
 
   const [floorPlan, setFloorPlan] = useLocalStorage('floorPlan', {
     walls: [] as Wall[],
-    width: canvasWidth,
-    height: canvasHeight,
+    width: defaultFloorPlanSize.width,
+    height: defaultFloorPlanSize.height,
   });
   
   const [routerPosition, setRouterPosition] = useState<Position>({ x: Math.floor(floorPlan.width / 2), y: Math.floor(floorPlan.height / 2) });
@@ -316,10 +313,10 @@ const WifiSimulator = () => {
       </div>
       
       {/* Canvas container with proper styling to center it */}
-      <div className="canvas-container mx-auto" style={{ width: `${canvasWidth}px` }}>
+      <div className="canvas-container mx-auto" style={{ width: `${floorPlan.width}px` }}>
         <Stage 
-          width={canvasWidth} 
-          height={canvasHeight}
+          width={floorPlan.width} 
+          height={floorPlan.height}
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
@@ -331,8 +328,8 @@ const WifiSimulator = () => {
             <Rect 
               x={0} 
               y={0} 
-              width={canvasWidth}
-              height={canvasHeight}
+              width={floorPlan.width}
+              height={floorPlan.height}
               fill="white"
               stroke="gray"
             />
@@ -341,8 +338,8 @@ const WifiSimulator = () => {
             {backgroundImage && (
               <KonvaImage
                 image={backgroundImage}
-                x={(canvasWidth - backgroundImage.width) / 2}
-                y={(canvasHeight - backgroundImage.height) / 2}
+                x={(floorPlan.width - backgroundImage.width) / 2}
+                y={(floorPlan.height - backgroundImage.height) / 2}
                 width={backgroundImage.width}
                 height={backgroundImage.height}
                 opacity={imageOpacity}
