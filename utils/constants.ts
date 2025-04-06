@@ -6,8 +6,9 @@ export const defaultFloorPlanSize = {
 };
 
 export const ROUTER_POWER = 20; // dBm - typical for home routers
-export const FREQUENCY = 5 // GHz - standard WiFi frequency
+export const FREQUENCY = 2.4 // GHz - standard WiFi frequency
 
+//These are average values for the materials, they can differ from real life situations
 export const WALL_ATTENUATION: Record<WallMaterial, number> = {
   'drywall': 3,     // dB
   'concrete': 12,   // dB
@@ -18,6 +19,7 @@ export const WALL_ATTENUATION: Record<WallMaterial, number> = {
   'other': 5        // dB
 };
 
+//Used for select menu, and for the wall material colors
 export const WALL_MATERIALS = [
   { value: 'drywall', label: 'Drywall', color: '#CCCCCC' },
   { value: 'concrete', label: 'Concrete', color: '#888888' },
@@ -28,6 +30,7 @@ export const WALL_MATERIALS = [
   { value: 'other', label: 'Other', color: '#000000' }
 ];
 
+//Not sure yet what is this exactly for, but it is used in the code
 export const SIGNAL_STRENGTH_LEVELS = [
   { threshold: -30, label: 'Excellent', color: '#00FF00' },
   { threshold: -50, label: 'Good', color: '#90EE90' },

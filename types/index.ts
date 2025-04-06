@@ -15,6 +15,7 @@ export interface Wall {
   y2: number;
   material: WallMaterial;
   color: string; // Add color property
+  width: number;
 }
 
 export interface SignalPoint {

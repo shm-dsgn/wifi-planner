@@ -1,7 +1,8 @@
+// Modified version of components/WifiSimulator/index.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Stage, Layer, Rect, Circle, Image as KonvaImage } from 'react-konva';
+import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line } from 'react-konva';
 import DrawingTools from './DrawingTools';
 import SimulationControls from './SimulationControls';
 import Legend from './Legend';
@@ -26,6 +27,9 @@ const WifiSimulator = () => {
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null);
   const [imageOpacity, setImageOpacity] = useState(0.5);
   const [isDraggingRouter, setIsDraggingRouter] = useState(false);
+  
+  // Set fixed wall width
+  const WALL_WIDTH = 10; // This is our fixed wall width in pixels
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -77,7 +81,8 @@ const WifiSimulator = () => {
       x2: pointerPosition.x,
       y2: pointerPosition.y,
       material: selectedMaterial,
-      color: getMaterialColor(selectedMaterial)
+      color: getMaterialColor(selectedMaterial),
+      width: WALL_WIDTH // Store the fixed width
     });
   };
   
@@ -304,24 +309,29 @@ const WifiSimulator = () => {
         {/* Walls Layer */}
         <Layer>
           {floorPlan.walls.map((wall) => (
-            <Rect
+            <Line
               key={wall.id}
-              x={Math.min(wall.x1, wall.x2)}
-              y={Math.min(wall.y1, wall.y2)}
-              width={Math.abs(wall.x2 - wall.x1) || 1}
-              height={Math.abs(wall.y2 - wall.y1) || 1}
-              fill={wall.color}
+              points={[wall.x1, wall.y1, wall.x2, wall.y2]}
+              stroke={wall.color}
+              strokeWidth={wall.width || WALL_WIDTH}
+              lineCap="round"
+              lineJoin="round"
             />
           ))}
           
           {/* Current Wall being drawn */}
           {currentWall && (
-            <Rect
-              x={Math.min(currentWall.x1 || 0, currentWall.x2 || 0)}
-              y={Math.min(currentWall.y1 || 0, currentWall.y2 || 0)}
-              width={Math.abs((currentWall.x2 || 0) - (currentWall.x1 || 0)) || 1}
-              height={Math.abs((currentWall.y2 || 0) - (currentWall.y1 || 0)) || 1}
-              fill={currentWall.color || '#000'}
+            <Line
+              points={[
+                currentWall.x1 || 0, 
+                currentWall.y1 || 0, 
+                currentWall.x2 || 0, 
+                currentWall.y2 || 0
+              ]}
+              stroke={currentWall.color || '#000'}
+              strokeWidth={WALL_WIDTH}
+              lineCap="round"
+              lineJoin="round"
               opacity={0.7}
             />
           )}
@@ -348,7 +358,7 @@ const WifiSimulator = () => {
       <div className="instructions mt-4">
         <h3 className="font-bold">Instructions:</h3>
         {mode === 'draw' ? (
-          <p>Click and drag to draw walls. Select wall material from the dropdown. Upload a floor plan image to use as a stencil.</p>
+          <p>Click and drag to draw walls. Walls have a fixed width of {WALL_WIDTH}px. Select wall material from the dropdown. Upload a floor plan image to use as a stencil.</p>
         ) : (
           <p>Drag the blue router to see how signal strength changes. Use "Find Optimal Position" to automatically place the router.</p>
         )}
