@@ -47,7 +47,7 @@ const WifiSimulator = () => {
       setHistory([[]]);
       setHistoryIndex(0);
     }
-  }, []);
+  });
   
   // Calculate signal strength when needed
   useEffect(() => {

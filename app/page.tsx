@@ -1,7 +1,6 @@
 "use client"
 
 import { Suspense } from 'react'
-import Header from '@/components/Layout/Header'
 import Footer from '@/components/Layout/Footer'
 import dynamic from 'next/dynamic'
 
