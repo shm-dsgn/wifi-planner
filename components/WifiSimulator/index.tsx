@@ -419,7 +419,7 @@ const WifiSimulator = () => {
         {mode === 'draw' ? (
           <p>Click and drag to draw walls. Use Undo/Redo buttons to fix mistakes. Walls have a fixed width of {WALL_WIDTH}px. Select wall material from the dropdown. Upload a floor plan image to use as a stencil.</p>
         ) : (
-          <p>Drag the blue router to see how signal strength changes. Use "Find Optimal Position" to automatically place the router.</p>
+          <p>Drag the blue router to see how signal strength changes. Use &quot;Find Optimal Position&quot; to automatically place the router.</p>
         )}
       </div>
     </div>
