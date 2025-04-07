@@ -1,6 +1,6 @@
 import React from 'react';
 import { WallMaterial } from '@/types';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/Select';
 
 interface DrawingToolsProps {
@@ -61,7 +61,7 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
         </Button>
       </div>
       
-      <Button onClick={onClear} variant="danger">
+      <Button onClick={onClear} variant="destructive">
         Clear Walls
       </Button>
     </div>

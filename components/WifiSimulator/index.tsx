@@ -10,6 +10,7 @@ import { Wall, Position, SimulationMode, WallMaterial, SignalPoint } from '@/typ
 import { calculateSignalStrength, findOptimalPosition } from './utils/signalCalculation';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { defaultFloorPlanSize } from '@/utils/constants';
+import { Button } from '@/components/ui/button';
 
 const WifiSimulator = () => {
 
@@ -258,12 +259,12 @@ const WifiSimulator = () => {
           />
         )}
         
-        <button 
+        <Button 
           onClick={toggleMode} 
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
         >
           {mode === 'draw' ? 'Start Simulation' : 'Return to Drawing'}
-        </button>
+        </Button>
       </div>
       
       {/* Floor plan image controls */}
@@ -277,12 +278,12 @@ const WifiSimulator = () => {
             onChange={handleImageUpload}
             className="hidden"
           />
-          <button
+          <Button
             onClick={handleUploadClick}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Upload Floor Plan Image
-          </button>
+          </Button>
           
           {backgroundImage && (
             <>
@@ -301,12 +302,12 @@ const WifiSimulator = () => {
                 <span>{Math.round(imageOpacity * 100)}%</span>
               </div>
               
-              <button
+              <Button
                 onClick={handleRemoveImage}
                 className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
               >
                 Remove Image
-              </button>
+              </Button>
             </>
           )}
         </div>
