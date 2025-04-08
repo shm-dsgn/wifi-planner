@@ -1,7 +1,23 @@
-import React from 'react';
-import { WallMaterial } from '@/types';
-import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
+"use client";
+
+import type React from "react";
+import type { WallMaterial } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Undo2, Redo2, Eraser } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DrawingToolsProps {
   selectedMaterial: WallMaterial;
@@ -14,56 +30,97 @@ interface DrawingToolsProps {
 }
 
 const materialOptions = [
-  { value: 'drywall', label: 'Drywall' },
-  { value: 'concrete', label: 'Concrete' },
-  { value: 'glass', label: 'Glass' },
-  { value: 'wood', label: 'Wood' },
-  { value: 'metal', label: 'Metal' },
-  { value: 'brick', label: 'Brick' },
-  { value: 'other', label: 'Other' }
+  { value: "drywall", label: "Drywall" },
+  { value: "concrete", label: "Concrete" },
+  { value: "glass", label: "Glass" },
+  { value: "wood", label: "Wood" },
+  { value: "metal", label: "Metal" },
+  { value: "brick", label: "Brick" },
+  { value: "other", label: "Other" },
 ];
 
-const DrawingTools: React.FC<DrawingToolsProps> = ({ 
-  selectedMaterial, 
-  onMaterialChange, 
+const DrawingTools: React.FC<DrawingToolsProps> = ({
+  selectedMaterial,
+  onMaterialChange,
   onClear,
   onUndo,
   onRedo,
   canUndo,
-  canRedo
+  canRedo,
 }) => {
   return (
-    <div className="drawing-tools flex items-center gap-3">
-      <Select 
-        value={selectedMaterial}
-        onChange={(e) => onMaterialChange(e.target.value as WallMaterial)}
-        options={materialOptions}
-        label="Wall Material"
-      />
-      
-      <div className="history-buttons flex gap-2">
-        <Button 
-          onClick={onUndo} 
-          disabled={!canUndo}
-          variant="secondary"
-          title="Undo"
+    <div className="drawing-tools flex items-end gap-3">
+      <div className="space-y-2 w-36">
+        <Label htmlFor="wall-material">Wall Material</Label>
+        <Select
+          value={selectedMaterial}
+          onValueChange={(value) => onMaterialChange(value as WallMaterial)}
         >
-          Undo
-        </Button>
-        
-        <Button 
-          onClick={onRedo} 
-          disabled={!canRedo}
-          variant="secondary"
-          title="Redo"
-        >
-          Redo
-        </Button>
+          <SelectTrigger id="wall-material">
+            <SelectValue placeholder="Select material" />
+          </SelectTrigger>
+          <SelectContent>
+            {materialOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      
-      <Button onClick={onClear} variant="danger">
-        Clear Walls
-      </Button>
+
+      <div className="space-y-2">
+        <Label htmlFor="action-buttons">Actions</Label>
+        <div className="history-buttons flex gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                  variant="secondary"
+                  size="icon"
+                >
+                  <Undo2 />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Undo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                  variant="secondary"
+                  size="icon"
+                >
+                  <Redo2 />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Redo</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button onClick={onClear} variant="destructive" size="icon">
+              <Eraser />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Clear all</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

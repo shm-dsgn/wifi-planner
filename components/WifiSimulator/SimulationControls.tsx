@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface SimulationControlsProps {
   onFindOptimalPosition: () => void;
@@ -10,7 +10,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
 }) => {
   return (
     <div className="simulation-controls flex items-center gap-3">
-      <Button onClick={onFindOptimalPosition} variant="success">
+      <Button onClick={onFindOptimalPosition} variant="outline">
         Find Optimal Position
       </Button>
     </div>
