@@ -1,7 +1,7 @@
 import React from 'react';
 import { WallMaterial } from '@/types';
 import { Button } from "@/components/ui/button"
-import { Select } from '@/components/ui/Select';
+// import { Select } from '@/components/ui/Select';
 
 interface DrawingToolsProps {
   selectedMaterial: WallMaterial;
@@ -34,12 +34,12 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
 }) => {
   return (
     <div className="drawing-tools flex items-center gap-3">
-      <Select 
+      {/* <Select 
         value={selectedMaterial}
         onChange={(e) => onMaterialChange(e.target.value as WallMaterial)}
         options={materialOptions}
         label="Wall Material"
-      />
+      /> */}
       
       <div className="history-buttons flex gap-2">
         <Button 
