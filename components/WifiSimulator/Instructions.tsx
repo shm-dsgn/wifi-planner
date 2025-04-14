@@ -13,7 +13,7 @@ const Instructions: React.FC<InstructionsProps> = ({ mode, wallWidth }) => {
       <span className="font-medium">Instructions: </span>
       {mode === "draw" ? (
         <span className="text-sm text-gray-500">
-          Click and drag to draw walls. Use Undo/Redo buttons to fix mistakes.
+          Click and drag to draw walls.
           Walls have a fixed width of {wallWidth}px. Select wall material
           from the dropdown. Upload a floor plan image to use as a stencil.
         </span>

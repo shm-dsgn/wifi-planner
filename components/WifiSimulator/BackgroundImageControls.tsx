@@ -29,7 +29,7 @@ const BackgroundImageControls: React.FC<BackgroundImageControlsProps> = ({
   onImageUpload,
 }) => {
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-wrap items-center gap-4 text-sm">
       <input
         ref={fileInputRef}
         type="file"

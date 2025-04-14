@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-neutral-100 mt-auto">
+    <footer className="bg-neutral-100 mt-8">
       <div className="container mx-auto p-4 flex md:flex-row gap-2 justify-between items-center">
         <div className="flex flex-col gap-1 text-xs text-gray-500">
           <p>
@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
             </Link>
           </p>
         </div>
-        <Button variant="outline" size={"sm"}>
+        <Button size={"sm"} variant="outline">
           <Link
             href="https://github.com/shm-dsgn/router-ranger"
             target="_blank"

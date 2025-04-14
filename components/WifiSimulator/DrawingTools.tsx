@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Undo2, Redo2, Eraser } from "lucide-react";
 import {
   Tooltip,
@@ -41,61 +40,58 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
 }) => {
   return (
     <div className="drawing-tools flex items-end gap-3">
+      <Select
+        value={selectedMaterial}
+        onValueChange={(value) => onMaterialChange(value as WallMaterial)}
+      >
+        <SelectTrigger id="wall-material">
+          <SelectValue placeholder="Select material" className="text-sm"/>
+        </SelectTrigger>
+        <SelectContent>
+          {WALL_MATERIALS.map((option) => (
+            <SelectItem key={option.value} value={option.value} className="text-sm">
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        <Select
-          value={selectedMaterial}
-          onValueChange={(value) => onMaterialChange(value as WallMaterial)}
-        >
-          <SelectTrigger id="wall-material">
-            <SelectValue placeholder="Select material" />
-          </SelectTrigger>
-          <SelectContent>
-            {WALL_MATERIALS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-
-
-        <div className="history-buttons flex gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  variant="secondary"
-                  size="icon"
-                >
-                  <Undo2 />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Undo</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                  variant="secondary"
-                  size="icon"
-                >
-                  <Redo2 />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Redo</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+      <div className="history-buttons flex gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={onUndo}
+                disabled={!canUndo}
+                variant="secondary"
+                size="icon"
+              >
+                <Undo2 />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Undo</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={onRedo}
+                disabled={!canRedo}
+                variant="secondary"
+                size="icon"
+              >
+                <Redo2 />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Redo</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
 
       <TooltipProvider>
         <Tooltip>

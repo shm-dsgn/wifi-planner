@@ -1,7 +1,6 @@
 // components/WifiSimulator/ModeToggleButton.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Play, PenLine } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
