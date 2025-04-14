@@ -16,7 +16,6 @@ export const WALL_ATTENUATION: Record<WallMaterial, number> = {
   wood: 4, // dB
   metal: 20, // dB
   brick: 8, // dB
-  other: 5, // dB
 };
 
 //Used for select menu, and for the wall material colors
@@ -27,7 +26,6 @@ export const WALL_MATERIALS = [
   { value: "wood", label: "Wood", color: "#AA7744" },
   { value: "metal", label: "Metal", color: "#AAAAAA" },
   { value: "brick", label: "Brick", color: "#BB4444" },
-  { value: "other", label: "Other", color: "#000000" },
 ];
 
 //Not sure yet what is this exactly for, but it is used in the code

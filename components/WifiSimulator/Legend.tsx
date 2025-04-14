@@ -10,8 +10,8 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
   return (
     <div className="legend mt-4 flex flex-wrap gap-8">
       <div className="material-legend">
-        <h3 className="font-bold mb-2">Materials:</h3>
-        <div className="flex gap-2">
+        <h3 className="font-medium mb-2 text-sm">Materials:</h3>
+        <div className="flex gap-2 text-xs">
           {WALL_MATERIALS.map(material => (
             <div key={material.value} className="flex items-center">
               <div 
@@ -26,8 +26,8 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
       
       {mode === 'simulate' && (
         <div className="signal-legend">
-          <h3 className="font-bold mb-2">Signal Strength:</h3>
-          <div className="flex gap-2">
+          <h3 className="font-medium mb-2 text-sm">Signal Strength:</h3>
+          <div className="flex gap-2 text-xs">
             {SIGNAL_STRENGTH_LEVELS.map(level => (
               <div key={level.label} className="flex items-center">
                 <div 

@@ -1,4 +1,4 @@
-export type WallMaterial = 'drywall' | 'concrete' | 'glass' | 'wood' | 'metal' | 'brick' | 'other';
+export type WallMaterial = 'drywall' | 'concrete' | 'glass' | 'wood' | 'metal' | 'brick';
 
 export type SimulationMode = 'draw' | 'simulate';
 

@@ -11,7 +11,7 @@ const SimulationControls: React.FC<SimulationControlsProps> = ({
   return (
     <div className="simulation-controls flex items-center gap-3">
       <Button onClick={onFindOptimalPosition} variant="outline">
-        Find Optimal Position
+        Optimize
       </Button>
     </div>
   );
