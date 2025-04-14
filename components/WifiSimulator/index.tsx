@@ -35,13 +35,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-const [isCalibrating, setIsCalibrating] = useState(false);
-const [calibrationLine, setCalibrationLine] = useState<{start: Position | null, end: Position | null}>({
-  start: null,
-  end: null
-});
-const [calibrationLength, setCalibrationLength] = useState("10");
-const [calibrationUnit, setCalibrationUnit] = useState<"feet" | "inches" | "meters" | "centimeters">("feet");
 
 // Add a new mode for scale calibration
 type AppMode = SimulationMode | "calibrate";
@@ -72,9 +65,13 @@ const WifiSimulator = () => {
   const [scale, setScale] = useLocalStorage<number | null>("floorPlanScale", null);
   const [showMeasurements, setShowMeasurements] = useState(true);
 
-  // Add calibration state
-  const [calibrationStart, setCalibrationStart] = useState<Position | null>(null);
-  const [calibrationEnd, setCalibrationEnd] = useState<Position | null>(null);
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [calibrationLine, setCalibrationLine] = useState<{start: Position | null, end: Position | null}>({
+    start: null,
+    end: null
+  });
+  const [calibrationLength, setCalibrationLength] = useState("10");
+  const [calibrationUnit, setCalibrationUnit] = useState<"feet" | "inches" | "meters" | "centimeters">("feet");
 
   // Add history states for undo/redo functionality
   const [history, setHistory] = useState<Wall[][]>([]);
@@ -231,7 +228,7 @@ const handleCanvasMouseDown = (e: any) => {
     setCurrentWall(null);
   };
 
-  const applyCalibration = () => {
+  const applyCalibration = (realLength: number, unit: string) => {
     if (calibrationLine.start && calibrationLine.end) {
       const pixelDistance = Math.sqrt(
         Math.pow(calibrationLine.end.x - calibrationLine.start.x, 2) + 
@@ -239,9 +236,8 @@ const handleCanvasMouseDown = (e: any) => {
       );
       
       let lengthInFeet;
-      const realLength = parseFloat(calibrationLength);
       
-      switch(calibrationUnit) {
+      switch(unit) {
         case "inches":
           lengthInFeet = realLength / 12;
           break;
@@ -262,7 +258,6 @@ const handleCanvasMouseDown = (e: any) => {
       setMode("draw");
     }
   };
-
   // Add a function to cancel calibration
 const cancelCalibration = () => {
   setIsCalibrating(false);
@@ -436,58 +431,16 @@ const cancelCalibration = () => {
         ) : null}
 
 <ScaleCalibration 
-  onSetScale={handleSetScale}
-  currentScale={scale}
-  onStartCalibration={startCalibration}
-  isCalibrating={isCalibrating}
-/>
-
-{isCalibrating && calibrationLine.start && calibrationLine.end && (
-  <div className="calibration-controls mt-4 p-4 border rounded bg-blue-50">
-    <h3 className="font-medium mb-2">Finish Calibration</h3>
-    <p className="mb-2">Line length: {
-      Math.sqrt(
-        Math.pow(calibrationLine.end.x - calibrationLine.start.x, 2) + 
-        Math.pow(calibrationLine.end.y - calibrationLine.start.y, 2)
-      ).toFixed(1)
-    } pixels</p>
-    
-    <div className="flex gap-3 items-end">
-      <div className="space-y-2">
-        <Label htmlFor="calibration-length">Real-world length</Label>
-        <Input
-          id="calibration-length"
-          type="number" 
-          min="0.1"
-          step="0.1"
-          value={calibrationLength}
-          onChange={(e) => setCalibrationLength(e.target.value)}
-          className="w-24"
+          onSetScale={handleSetScale}
+          currentScale={scale}
+          onStartCalibration={startCalibration}
+          isCalibrating={isCalibrating}
+          calibrationLine={calibrationLine}
+          onApplyCalibration={applyCalibration}
+          onCancelCalibration={cancelCalibration}
         />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="calibration-unit">Unit</Label>
-        <select
-          id="calibration-unit"
-          value={calibrationUnit}
-          onChange={(e) => setCalibrationUnit(e.target.value as any)}
-          className="border rounded p-2 w-32"
-        >
-          <option value="feet">feet</option>
-          <option value="inches">inches</option>
-          <option value="meters">meters</option>
-          <option value="centimeters">cm</option>
-        </select>
-      </div>
-      
-      <div className="flex gap-2">
-        <Button onClick={applyCalibration} variant="default">Apply</Button>
-        <Button onClick={cancelCalibration} variant="secondary">Cancel</Button>
-      </div>
-    </div>
-  </div>
-)}
+
+
 
         <TooltipProvider>
           <Tooltip>

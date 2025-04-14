@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,9 @@ interface ScaleCalibrationProps {
   currentScale: number | null;
   onStartCalibration: () => void;
   isCalibrating: boolean;
+  calibrationLine?: {start: {x: number, y: number} | null, end: {x: number, y: number} | null};
+  onApplyCalibration: (realLength: number, unit: string) => void;
+  onCancelCalibration: () => void;
 }
 
 const ScaleCalibration: React.FC<ScaleCalibrationProps> = ({
@@ -22,33 +25,12 @@ const ScaleCalibration: React.FC<ScaleCalibrationProps> = ({
   currentScale,
   onStartCalibration,
   isCalibrating,
+  calibrationLine,
+  onApplyCalibration,
+  onCancelCalibration
 }) => {
-  const [distance, setDistance] = useState<number>(0);
   const [realWorldLength, setRealWorldLength] = useState<string>("10");
   const [unit, setUnit] = useState<"feet" | "inches" | "meters" | "centimeters">("feet");
-  
-  // Apply calibration
-  const applyCalibration = (pixelDistance: number, realLength: number, unit: string) => {
-    let lengthInFeet;
-    
-    switch(unit) {
-      case "inches":
-        lengthInFeet = realLength / 12;
-        break;
-      case "meters":
-        lengthInFeet = realLength * 3.28084;
-        break;
-      case "centimeters":
-        lengthInFeet = realLength * 0.0328084;
-        break;
-      default: // feet
-        lengthInFeet = realLength;
-        break;
-    }
-    
-    const pixelsPerFoot = pixelDistance / lengthInFeet;
-    onSetScale(pixelsPerFoot);
-  };
 
   // Format scale display
   const formatScaleDisplay = () => {
@@ -77,6 +59,21 @@ const ScaleCalibration: React.FC<ScaleCalibrationProps> = ({
   };
 
   const pixelsPerUnit = getPixelsPerUnit();
+
+  const handleApplyCalibration = () => {
+    onApplyCalibration(parseFloat(realWorldLength), unit);
+  };
+
+  // Calculate line length if we have a calibration line
+  const calculateLineLength = () => {
+    if (calibrationLine?.start && calibrationLine?.end) {
+      return Math.sqrt(
+        Math.pow(calibrationLine.end.x - calibrationLine.start.x, 2) + 
+        Math.pow(calibrationLine.end.y - calibrationLine.start.y, 2)
+      ).toFixed(1);
+    }
+    return "0";
+  };
 
   return (
     <div className="scale-calibration">
@@ -113,6 +110,10 @@ const ScaleCalibration: React.FC<ScaleCalibrationProps> = ({
             Then enter the real-world measurement to establish the scale.
           </p>
           
+          {calibrationLine?.start && calibrationLine?.end && (
+            <p className="mb-2">Line length: {calculateLineLength()} pixels</p>
+          )}
+          
           <div className="flex gap-3 items-end">
             <div className="space-y-2">
               <Label htmlFor="real-length">Length</Label>
@@ -140,6 +141,11 @@ const ScaleCalibration: React.FC<ScaleCalibrationProps> = ({
                 <option value="meters">meters</option>
                 <option value="centimeters">cm</option>
               </select>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button onClick={handleApplyCalibration} variant="default">Apply</Button>
+              <Button onClick={onCancelCalibration} variant="secondary">Cancel</Button>
             </div>
           </div>
         </div>
