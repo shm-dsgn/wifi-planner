@@ -1,3 +1,4 @@
+
 import { FloorPlan, Position, SignalPoint } from "@/types";
 import { lineIntersect } from "./lineIntersection";
 
@@ -16,7 +17,11 @@ const MATERIAL_ATTENUATION = {
 const BASE_SIGNAL_STRENGTH = -30;
 
 // Distance at which signal drops by 1dBm (in pixels)
-const DISTANCE_FACTOR = 10;
+const DEFAULT_DISTANCE_FACTOR = 10;
+
+// Real-world distance at which signal drops by 1dBm (in feet)
+// Based on real-world Wi-Fi signal propagation
+const REAL_WORLD_DISTANCE_FACTOR = 3; // Signal drops ~1dBm every 3 feet in free space
 
 // Signal strength to color mapping
 const getSignalColor = (strength: number): string => {
@@ -31,7 +36,8 @@ const getSignalColor = (strength: number): string => {
 export const calculateSignalAtPoint = (
   floorPlan: FloorPlan,
   routerPosition: Position,
-  point: Position
+  point: Position,
+  distanceFactor?: number
 ): number => {
   // Calculate distance
   const distance = Math.sqrt(
@@ -39,8 +45,11 @@ export const calculateSignalAtPoint = (
       Math.pow(routerPosition.y - point.y, 2)
   );
 
+  // Use provided distance factor or default
+  const factor = distanceFactor || DISTANCE_FACTOR;
+
   // Calculate base signal strength based on distance
-  let signalStrength = BASE_SIGNAL_STRENGTH - distance / DISTANCE_FACTOR;
+  let signalStrength = BASE_SIGNAL_STRENGTH - distance / factor;
 
   // Check for wall intersections
   for (const wall of floorPlan.walls) {
@@ -73,19 +82,23 @@ export const calculateSignalAtPoint = (
 export const calculateSignalStrength = (
   floorPlan: FloorPlan,
   routerPosition: Position,
+  scale: number | null,
   resolution: number = 10
 ): SignalPoint[] => {
   const points: SignalPoint[] = [];
 
-  console.log(floorPlan);
+  // Use scale to adjust distance factor if available
+  const distanceFactor = scale ? DISTANCE_FACTOR * (scale / 10) : DISTANCE_FACTOR;
 
   // Calculate signal strength at grid points
   for (let x = 0; x <= floorPlan.width; x += resolution) {
     for (let y = 0; y <= floorPlan.height; y += resolution) {
-      const strength = calculateSignalAtPoint(floorPlan, routerPosition, {
-        x,
-        y,
-      });
+      const strength = calculateSignalAtPoint(
+        floorPlan, 
+        routerPosition, 
+        { x, y },
+        scale ? distanceFactor : undefined
+      );
 
       points.push({
         x,
@@ -100,7 +113,7 @@ export const calculateSignalStrength = (
 };
 
 // Find optimal router position
-export const findOptimalPosition = (floorPlan: FloorPlan): Position => {
+export const findOptimalPosition = (floorPlan: FloorPlan, scale: number | null): Position => {
   const gridSize = 20; // Resolution for checking positions
   let bestPosition = { x: floorPlan.width / 2, y: floorPlan.height / 2 };
   let bestAverageStrength = -Infinity;
