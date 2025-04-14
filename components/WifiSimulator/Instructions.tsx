@@ -9,19 +9,19 @@ interface InstructionsProps {
 
 const Instructions: React.FC<InstructionsProps> = ({ mode, wallWidth }) => {
   return (
-    <div className="instructions mb-8 mt-4">
-      <h3 className="font-bold">Instructions:</h3>
+    <div className="instructions mb-4 text-sm">
+      <span className="font-medium">Instructions: </span>
       {mode === "draw" ? (
-        <p>
+        <span className="text-sm text-gray-500">
           Click and drag to draw walls. Use Undo/Redo buttons to fix mistakes.
           Walls have a fixed width of {wallWidth}px. Select wall material
           from the dropdown. Upload a floor plan image to use as a stencil.
-        </p>
+        </span>
       ) : (
-        <p>
+        <span className="text-sm text-gray-500">
           Drag the blue router to see how signal strength changes. Use
           &quot;Find Optimal Position&quot; to automatically place the router.
-        </p>
+        </span>
       )}
     </div>
   );

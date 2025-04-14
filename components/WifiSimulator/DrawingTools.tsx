@@ -30,17 +30,6 @@ interface DrawingToolsProps {
   canRedo: boolean;
 }
 
-// const materialOptions = [
-//   { value: "drywall", label: "Drywall" },
-//   { value: "concrete", label: "Concrete" },
-//   { value: "glass", label: "Glass" },
-//   { value: "wood", label: "Wood" },
-//   { value: "metal", label: "Metal" },
-//   { value: "brick", label: "Brick" },
-//   { value: "other", label: "Other" },
-// ];
-
-
 const DrawingTools: React.FC<DrawingToolsProps> = ({
   selectedMaterial,
   onMaterialChange,
@@ -52,8 +41,7 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
 }) => {
   return (
     <div className="drawing-tools flex items-end gap-3">
-      <div className="space-y-2 w-36">
-        <Label htmlFor="wall-material">Wall Material</Label>
+
         <Select
           value={selectedMaterial}
           onValueChange={(value) => onMaterialChange(value as WallMaterial)}
@@ -69,10 +57,9 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
             ))}
           </SelectContent>
         </Select>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="action-buttons">Actions</Label>
+
+
         <div className="history-buttons flex gap-2">
           <TooltipProvider>
             <Tooltip>
@@ -109,7 +96,6 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-      </div>
 
       <TooltipProvider>
         <Tooltip>

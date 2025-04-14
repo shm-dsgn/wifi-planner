@@ -11,7 +11,7 @@ export function useWallDrawing(
   const [drawing, setDrawing] = useState(false);
   const [currentWall, setCurrentWall] = useState<Partial<Wall> | null>(null);
   const [selectedMaterial, setSelectedMaterial] =
-    useState<WallMaterial>("drywall");
+    useState<WallMaterial>("concrete");
 
   // History for undo/redo
   const [history, setHistory] = useState<Wall[][]>([]);

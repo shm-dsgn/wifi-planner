@@ -24,7 +24,7 @@ const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, onToggle }) =
             onClick={onToggle}
             className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 transition"
           >
-            {mode === "draw" ? <Play /> : <PenLine />}
+            {mode === "draw" ? "Start" : "Draw"}
           </Button>
         </TooltipTrigger>
         <TooltipContent>

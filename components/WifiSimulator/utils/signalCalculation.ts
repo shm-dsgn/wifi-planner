@@ -9,7 +9,6 @@ const MATERIAL_ATTENUATION = {
   concrete: 10.0,
   metal: 15.0,
   glass: 2.0,
-  other: 4.0,
 };
 
 // Base signal strength (in dBm)

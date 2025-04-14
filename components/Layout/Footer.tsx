@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto p-4 flex md:flex-row gap-2 justify-between items-center">
         <div className="flex flex-col gap-1 text-xs text-gray-500">
           <p>
-            &copy; {new Date().getFullYear()} WiFi Planner. All rights reserved.
+            &copy; {new Date().getFullYear()} Nest. All rights reserved.
           </p>
           <p>
             Built with ❤️ by{" "}
