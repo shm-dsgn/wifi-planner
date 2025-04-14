@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'WiFi Signal Simulator',
+  title: 'WiFi Planner',
   description: 'Simulate WiFi signal strength in your home to find optimal router placement',
 }
 
