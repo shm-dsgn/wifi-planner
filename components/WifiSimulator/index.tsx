@@ -1,4 +1,3 @@
-// Modified version of components/WifiSimulator/index.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -9,9 +8,11 @@ import {
   Circle,
   Image as KonvaImage,
   Line,
+  Text,
 } from "react-konva";
 import DrawingTools from "./DrawingTools";
 import SimulationControls from "./SimulationControls";
+import ScaleCalibration from "./ScaleCalibration";
 import Legend from "./Legend";
 import {
   Wall,
@@ -27,13 +28,16 @@ import {
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { defaultFloorPlanSize } from "@/utils/constants";
 import { Button } from "@/components/ui/button";
-import { ImageUp, ImageOff, Play, PenLine } from "lucide-react";
+import { ImageUp, ImageOff, Play, PenLine, Ruler } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Add a new mode for scale calibration
+type AppMode = SimulationMode | "calibrate";
 
 const WifiSimulator = () => {
   const [floorPlan, setFloorPlan] = useLocalStorage("floorPlan", {
@@ -51,11 +55,19 @@ const WifiSimulator = () => {
   const [currentWall, setCurrentWall] = useState<Partial<Wall> | null>(null);
   const [selectedMaterial, setSelectedMaterial] =
     useState<WallMaterial>("drywall");
-  const [mode, setMode] = useState<SimulationMode>("draw");
+  const [mode, setMode] = useState<AppMode>("draw");
   const [backgroundImage, setBackgroundImage] =
     useState<HTMLImageElement | null>(null);
   const [imageOpacity, setImageOpacity] = useState(0.5);
   const [isDraggingRouter, setIsDraggingRouter] = useState(false);
+
+  // Add scale state
+  const [scale, setScale] = useLocalStorage<number | null>("floorPlanScale", null);
+  const [showMeasurements, setShowMeasurements] = useState(true);
+
+  // Add calibration state
+  const [calibrationStart, setCalibrationStart] = useState<Position | null>(null);
+  const [calibrationEnd, setCalibrationEnd] = useState<Position | null>(null);
 
   // Add history states for undo/redo functionality
   const [history, setHistory] = useState<Wall[][]>([]);
@@ -65,6 +77,7 @@ const WifiSimulator = () => {
   const WALL_WIDTH = 10; // This is our fixed wall width in pixels
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const stageRef = useRef<any>(null);
 
   // Initialize history when component mounts
   useEffect(() => {
@@ -75,15 +88,15 @@ const WifiSimulator = () => {
       setHistory([[]]);
       setHistoryIndex(0);
     }
-  });
+  }, []);
 
   // Calculate signal strength when needed
   useEffect(() => {
     if (mode === "simulate") {
-      const strengthMap = calculateSignalStrength(floorPlan, routerPosition);
+      const strengthMap = calculateSignalStrength(floorPlan, routerPosition, scale);
       setSignalStrengthMap(strengthMap);
     }
-  }, [routerPosition, floorPlan, mode]);
+  }, [routerPosition, floorPlan, mode, scale]);
 
   const handleRouterDragStart = () => {
     setIsDraggingRouter(true);
@@ -114,6 +127,12 @@ const WifiSimulator = () => {
       default:
         return "#000000"; // Black
     }
+  };
+
+  // Set scale handler
+  const handleSetScale = (pixelsPerFoot: number) => {
+    setScale(pixelsPerFoot);
+    setMode("draw"); // Return to drawing mode after calibration
   };
 
   // Drawing mode functions
@@ -222,7 +241,7 @@ const WifiSimulator = () => {
   };
 
   const handleFindOptimalPosition = () => {
-    const bestPosition = findOptimalPosition(floorPlan);
+    const bestPosition = findOptimalPosition(floorPlan, scale);
     setRouterPosition(bestPosition);
   };
 
@@ -275,6 +294,37 @@ const WifiSimulator = () => {
     setImageOpacity(parseFloat(e.target.value));
   };
 
+  // Calculate length of a wall in real-world units
+  const calculateWallLength = (wall: Wall) => {
+    if (!scale) return null;
+    
+    const pixelLength = Math.sqrt(
+      Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2)
+    );
+    
+    const feetLength = pixelLength / scale;
+    
+    // Return in feet or inches based on size
+    if (feetLength < 1) {
+      return `${(feetLength * 12).toFixed(1)}"`;
+    } else {
+      return `${feetLength.toFixed(1)}'`;
+    }
+  };
+
+  // Get the middle point of a wall for placing the label
+  const getWallMidpoint = (wall: Wall) => {
+    return {
+      x: (wall.x1 + wall.x2) / 2,
+      y: (wall.y1 + wall.y2) / 2
+    };
+  };
+
+  // Toggle measurements display
+  const toggleMeasurements = () => {
+    setShowMeasurements(!showMeasurements);
+  };
+
   return (
     <div className="wifi-simulator mx-auto">
       <div className="instructions mb-8 mt-4">
@@ -282,13 +332,18 @@ const WifiSimulator = () => {
         {mode === "draw" ? (
           <p>
             Click and drag to draw walls. Use Undo/Redo buttons to fix mistakes.
-            Walls have a fixed width of {WALL_WIDTH}px. Select wall material
-            from the dropdown. Upload a floor plan image to use as a stencil.
+            Walls have a fixed width of {WALL_WIDTH}px. Set the scale to see real-world measurements.
           </p>
-        ) : (
+        ) : mode === "simulate" ? (
           <p>
             Drag the blue router to see how signal strength changes. Use
             &quot;Find Optimal Position&quot; to automatically place the router.
+            {scale && " Measurements show real-world distances based on your calibrated scale."}
+          </p>
+        ) : (
+          <p>
+            First click one end of a wall or object with a known length, then click the other end.
+            Enter the real-world measurement to calibrate the scale.
           </p>
         )}
       </div>
@@ -304,11 +359,16 @@ const WifiSimulator = () => {
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
           />
-        ) : (
+        ) : mode === "simulate" ? (
           <SimulationControls
             onFindOptimalPosition={handleFindOptimalPosition}
           />
-        )}
+        ) : null}
+
+        <ScaleCalibration 
+          onSetScale={handleSetScale}
+          currentScale={scale}
+        />
 
         <TooltipProvider>
           <Tooltip>
@@ -327,6 +387,26 @@ const WifiSimulator = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        {/* Show/hide measurements button */}
+        {scale && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={toggleMeasurements}
+                  variant={showMeasurements ? "default" : "outline"}
+                >
+                  <Ruler className="mr-2" />
+                  {showMeasurements ? "Hide" : "Show"} Measurements
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{showMeasurements ? "Hide" : "Show"} wall measurements</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         {/* Floor plan image controls */}
         <div className="flex flex-wrap items-center gap-4">
@@ -397,6 +477,7 @@ const WifiSimulator = () => {
         style={{ width: `${floorPlan.width}px` }}
       >
         <Stage
+          ref={stageRef}
           width={floorPlan.width}
           height={floorPlan.height}
           onMouseDown={handleCanvasMouseDown}
@@ -449,14 +530,30 @@ const WifiSimulator = () => {
           {/* Walls Layer */}
           <Layer>
             {floorPlan.walls.map((wall) => (
-              <Line
-                key={wall.id}
-                points={[wall.x1, wall.y1, wall.x2, wall.y2]}
-                stroke={wall.color}
-                strokeWidth={wall.width || WALL_WIDTH}
-                lineCap="round"
-                lineJoin="round"
-              />
+              <React.Fragment key={wall.id}>
+                <Line
+                  points={[wall.x1, wall.y1, wall.x2, wall.y2]}
+                  stroke={wall.color}
+                  strokeWidth={wall.width || WALL_WIDTH}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+                
+                {/* Add measurement labels */}
+                {scale && showMeasurements && (
+                  <Text
+                    text={calculateWallLength(wall) || ""}
+                    x={getWallMidpoint(wall).x}
+                    y={getWallMidpoint(wall).y}
+                    offsetX={15}
+                    offsetY={15}
+                    fontSize={12}
+                    fill="black"
+                    background="white"
+                    padding={2}
+                  />
+                )}
+              </React.Fragment>
             ))}
 
             {/* Current Wall being drawn */}
@@ -490,9 +587,30 @@ const WifiSimulator = () => {
               onDragStart={handleRouterDragStart}
               onDragEnd={handleRouterDragEnd}
             />
+            {/* Add router position indicator with real-world coordinates if scale is set */}
+            {scale && mode === "simulate" && (
+              <Text
+                text={`Router`}
+                x={routerPosition.x}
+                y={routerPosition.y - 25}
+                fontSize={12}
+                fill="black"
+                align="center"
+                width={60}
+                offsetX={30}
+              />
+            )}
           </Layer>
         </Stage>
       </div>
+
+      {/* Show scale information if set */}
+      {scale && (
+        <div className="scale-info mt-2 text-sm text-gray-600">
+          Scale: 1 pixel = {(1/scale).toFixed(2)} feet 
+          {" "} ({(12/scale).toFixed(2)} inches)
+        </div>
+      )}
 
       <Legend mode={mode} />
     </div>
