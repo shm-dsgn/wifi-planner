@@ -35,6 +35,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+const [isCalibrating, setIsCalibrating] = useState(false);
+const [calibrationLine, setCalibrationLine] = useState<{start: Position | null, end: Position | null}>({
+  start: null,
+  end: null
+});
+const [calibrationLength, setCalibrationLength] = useState("10");
+const [calibrationUnit, setCalibrationUnit] = useState<"feet" | "inches" | "meters" | "centimeters">("feet");
 
 // Add a new mode for scale calibration
 type AppMode = SimulationMode | "calibrate";
@@ -129,32 +136,56 @@ const WifiSimulator = () => {
     }
   };
 
+  const startCalibration = () => {
+    setMode("calibrate");
+    setIsCalibrating(true);
+    setCalibrationLine({ start: null, end: null });
+  };
+
   // Set scale handler
   const handleSetScale = (pixelsPerFoot: number) => {
     setScale(pixelsPerFoot);
     setMode("draw"); // Return to drawing mode after calibration
   };
 
-  // Drawing mode functions
-  const handleCanvasMouseDown = (e: any) => {
-    // Ignore if we're in simulate mode or if we're clicking the router
-    if (mode !== "draw" || isDraggingRouter) return;
+// Modify the handleCanvasMouseDown function to handle calibration clicks
+const handleCanvasMouseDown = (e: any) => {
+  // Get pointer position from the stage
+  const stage = e.target.getStage();
+  const pointerPosition = stage.getPointerPosition();
+  
+  // Handle calibration mode clicks
+  if (mode === "calibrate") {
+    if (!calibrationLine.start) {
+      setCalibrationLine({
+        start: { x: pointerPosition.x, y: pointerPosition.y },
+        end: null
+      });
+    } else if (!calibrationLine.end) {
+      setCalibrationLine({
+        start: calibrationLine.start,
+        end: { x: pointerPosition.x, y: pointerPosition.y }
+      });
+    }
+    return;
+  }
+  
+  // Existing drawing logic
+  // Ignore if we're in simulate mode or if we're clicking the router
+  if (mode !== "draw" || isDraggingRouter) return;
 
-    const stage = e.target.getStage();
-    const pointerPosition = stage.getPointerPosition();
-
-    setDrawing(true);
-    setCurrentWall({
-      id: `wall-${Date.now()}`,
-      x1: pointerPosition.x,
-      y1: pointerPosition.y,
-      x2: pointerPosition.x,
-      y2: pointerPosition.y,
-      material: selectedMaterial,
-      color: getMaterialColor(selectedMaterial),
-      width: WALL_WIDTH, // Store the fixed width
-    });
-  };
+  setDrawing(true);
+  setCurrentWall({
+    id: `wall-${Date.now()}`,
+    x1: pointerPosition.x,
+    y1: pointerPosition.y,
+    x2: pointerPosition.x,
+    y2: pointerPosition.y,
+    material: selectedMaterial,
+    color: getMaterialColor(selectedMaterial),
+    width: WALL_WIDTH, // Store the fixed width
+  });
+};
 
   const handleCanvasMouseMove = (e: any) => {
     if (!drawing || !currentWall || mode !== "draw") return;
@@ -199,6 +230,45 @@ const WifiSimulator = () => {
     setDrawing(false);
     setCurrentWall(null);
   };
+
+  const applyCalibration = () => {
+    if (calibrationLine.start && calibrationLine.end) {
+      const pixelDistance = Math.sqrt(
+        Math.pow(calibrationLine.end.x - calibrationLine.start.x, 2) + 
+        Math.pow(calibrationLine.end.y - calibrationLine.start.y, 2)
+      );
+      
+      let lengthInFeet;
+      const realLength = parseFloat(calibrationLength);
+      
+      switch(calibrationUnit) {
+        case "inches":
+          lengthInFeet = realLength / 12;
+          break;
+        case "meters":
+          lengthInFeet = realLength * 3.28084;
+          break;
+        case "centimeters":
+          lengthInFeet = realLength * 0.0328084;
+          break;
+        default: // feet
+          lengthInFeet = realLength;
+          break;
+      }
+      
+      const pixelsPerFoot = pixelDistance / lengthInFeet;
+      setScale(pixelsPerFoot);
+      setIsCalibrating(false);
+      setMode("draw");
+    }
+  };
+
+  // Add a function to cancel calibration
+const cancelCalibration = () => {
+  setIsCalibrating(false);
+  setCalibrationLine({ start: null, end: null });
+  setMode("draw");
+};
 
   // Undo function
   const handleUndo = () => {
@@ -365,10 +435,59 @@ const WifiSimulator = () => {
           />
         ) : null}
 
-        <ScaleCalibration 
-          onSetScale={handleSetScale}
-          currentScale={scale}
+<ScaleCalibration 
+  onSetScale={handleSetScale}
+  currentScale={scale}
+  onStartCalibration={startCalibration}
+  isCalibrating={isCalibrating}
+/>
+
+{isCalibrating && calibrationLine.start && calibrationLine.end && (
+  <div className="calibration-controls mt-4 p-4 border rounded bg-blue-50">
+    <h3 className="font-medium mb-2">Finish Calibration</h3>
+    <p className="mb-2">Line length: {
+      Math.sqrt(
+        Math.pow(calibrationLine.end.x - calibrationLine.start.x, 2) + 
+        Math.pow(calibrationLine.end.y - calibrationLine.start.y, 2)
+      ).toFixed(1)
+    } pixels</p>
+    
+    <div className="flex gap-3 items-end">
+      <div className="space-y-2">
+        <Label htmlFor="calibration-length">Real-world length</Label>
+        <Input
+          id="calibration-length"
+          type="number" 
+          min="0.1"
+          step="0.1"
+          value={calibrationLength}
+          onChange={(e) => setCalibrationLength(e.target.value)}
+          className="w-24"
         />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="calibration-unit">Unit</Label>
+        <select
+          id="calibration-unit"
+          value={calibrationUnit}
+          onChange={(e) => setCalibrationUnit(e.target.value as any)}
+          className="border rounded p-2 w-32"
+        >
+          <option value="feet">feet</option>
+          <option value="inches">inches</option>
+          <option value="meters">meters</option>
+          <option value="centimeters">cm</option>
+        </select>
+      </div>
+      
+      <div className="flex gap-2">
+        <Button onClick={applyCalibration} variant="default">Apply</Button>
+        <Button onClick={cancelCalibration} variant="secondary">Cancel</Button>
+      </div>
+    </div>
+  </div>
+)}
 
         <TooltipProvider>
           <Tooltip>
@@ -487,6 +606,38 @@ const WifiSimulator = () => {
           style={{ display: "block" }}
         >
           {/* Background Layer */}
+          <Layer>
+  {/* Calibration Line */}
+  {mode === "calibrate" && calibrationLine.start && (
+    <Line
+      points={[
+        calibrationLine.start.x,
+        calibrationLine.start.y,
+        calibrationLine.end ? calibrationLine.end.x : calibrationLine.start.x,
+        calibrationLine.end ? calibrationLine.end.y : calibrationLine.start.y
+      ]}
+      stroke="#0088ff"
+      strokeWidth={2}
+      dash={[5, 5]}
+    />
+  )}
+  {mode === "calibrate" && calibrationLine.start && (
+    <Circle
+      x={calibrationLine.start.x}
+      y={calibrationLine.start.y}
+      radius={4}
+      fill="#0088ff"
+    />
+  )}
+  {mode === "calibrate" && calibrationLine.end && (
+    <Circle
+      x={calibrationLine.end.x}
+      y={calibrationLine.end.y}
+      radius={4}
+      fill="#0088ff"
+    />
+  )}
+</Layer>
           <Layer>
             <Rect
               x={0}

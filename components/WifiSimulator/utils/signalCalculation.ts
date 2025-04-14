@@ -1,4 +1,3 @@
-
 import { FloorPlan, Position, SignalPoint } from "@/types";
 import { lineIntersect } from "./lineIntersection";
 
@@ -16,12 +15,13 @@ const MATERIAL_ATTENUATION = {
 // Base signal strength (in dBm)
 const BASE_SIGNAL_STRENGTH = -30;
 
-// Distance at which signal drops by 1dBm (in pixels)
-const DEFAULT_DISTANCE_FACTOR = 10;
-
-// Real-world distance at which signal drops by 1dBm (in feet)
-// Based on real-world Wi-Fi signal propagation
-const REAL_WORLD_DISTANCE_FACTOR = 3; // Signal drops ~1dBm every 3 feet in free space
+// Real-world distance factors - based on empirical Wi-Fi propagation models
+// Signal drops by approximately 1dBm per these distances in free space
+const DISTANCE_FACTORS = {
+  FEET: 3, // Signal drops ~1dBm every 3 feet
+  METERS: 1, // Signal drops ~1dBm every 1 meter
+  PIXEL_DEFAULT: 10 // Default pixel factor when no scale is set
+};
 
 // Signal strength to color mapping
 const getSignalColor = (strength: number): string => {
@@ -37,19 +37,31 @@ export const calculateSignalAtPoint = (
   floorPlan: FloorPlan,
   routerPosition: Position,
   point: Position,
-  distanceFactor?: number
+  scale: number | null
 ): number => {
-  // Calculate distance
-  const distance = Math.sqrt(
+  // Calculate distance in pixels
+  const pixelDistance = Math.sqrt(
     Math.pow(routerPosition.x - point.x, 2) +
-      Math.pow(routerPosition.y - point.y, 2)
+    Math.pow(routerPosition.y - point.y, 2)
   );
+  
+  // Convert to real-world distance if scale is available
+  let realDistance: number;
+  let distanceFactor: number;
+  
+  if (scale) {
+    // Convert pixel distance to feet using scale
+    realDistance = pixelDistance / scale;
+    distanceFactor = DISTANCE_FACTORS.FEET;
+  } else {
+    // Use pixel distance directly with default factor
+    realDistance = pixelDistance;
+    distanceFactor = DISTANCE_FACTORS.PIXEL_DEFAULT;
+  }
 
-  // Use provided distance factor or default
-  const factor = distanceFactor || DISTANCE_FACTOR;
-
-  // Calculate base signal strength based on distance
-  let signalStrength = BASE_SIGNAL_STRENGTH - distance / factor;
+  // Calculate base signal strength based on distance using inverse square law model
+  // Signal strength decreases proportionally to the square of the distance
+  let signalStrength = BASE_SIGNAL_STRENGTH - (20 * Math.log10(1 + realDistance / distanceFactor));
 
   // Check for wall intersections
   for (const wall of floorPlan.walls) {
@@ -86,18 +98,23 @@ export const calculateSignalStrength = (
   resolution: number = 10
 ): SignalPoint[] => {
   const points: SignalPoint[] = [];
-
-  // Use scale to adjust distance factor if available
-  const distanceFactor = scale ? DISTANCE_FACTOR * (scale / 10) : DISTANCE_FACTOR;
+  
+  // Calculate density of points based on scale if available
+  let actualResolution = resolution;
+  if (scale) {
+    // Adjust resolution so we have reasonable sampling density
+    // Aim for approximately one sample point per foot
+    actualResolution = Math.max(5, Math.round(scale / 3));
+  }
 
   // Calculate signal strength at grid points
-  for (let x = 0; x <= floorPlan.width; x += resolution) {
-    for (let y = 0; y <= floorPlan.height; y += resolution) {
+  for (let x = 0; x <= floorPlan.width; x += actualResolution) {
+    for (let y = 0; y <= floorPlan.height; y += actualResolution) {
       const strength = calculateSignalAtPoint(
         floorPlan, 
         routerPosition, 
         { x, y },
-        scale ? distanceFactor : undefined
+        scale
       );
 
       points.push({
@@ -114,7 +131,13 @@ export const calculateSignalStrength = (
 
 // Find optimal router position
 export const findOptimalPosition = (floorPlan: FloorPlan, scale: number | null): Position => {
-  const gridSize = 20; // Resolution for checking positions
+  // Adjust grid size based on scale if available
+  let gridSize = 20; // Default resolution for checking positions
+  if (scale) {
+    // Aim for approximately one sample point per 2 feet
+    gridSize = Math.max(10, Math.round(scale / 2));
+  }
+  
   let bestPosition = { x: floorPlan.width / 2, y: floorPlan.height / 2 };
   let bestAverageStrength = -Infinity;
 
@@ -135,7 +158,7 @@ export const findOptimalPosition = (floorPlan: FloorPlan, scale: number | null):
         const strength = calculateSignalAtPoint(floorPlan, testPosition, {
           x: sampleX,
           y: sampleY,
-        });
+        }, scale);
 
         totalStrength += strength;
         minStrength = Math.min(minStrength, strength);
@@ -155,39 +178,60 @@ export const findOptimalPosition = (floorPlan: FloorPlan, scale: number | null):
   return bestPosition;
 };
 
-// Generate a heatmap representation of signal strength
-export const generateHeatmap = (
-  floorPlan: FloorPlan,
-  routerPosition: Position,
-  resolution: number = 5
-): { data: number[][]; min: number; max: number } => {
-  const width = Math.ceil(floorPlan.width / resolution);
-  const height = Math.ceil(floorPlan.height / resolution);
-
-  // Create a 2D array for the heatmap
-  const data: number[][] = Array(height)
-    .fill(0)
-    .map(() => Array(width).fill(0));
-
-  let min = Infinity;
-  let max = -Infinity;
-
-  // Calculate signal strength at each point
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const pointX = x * resolution;
-      const pointY = y * resolution;
-
-      const strength = calculateSignalAtPoint(floorPlan, routerPosition, {
-        x: pointX,
-        y: pointY,
-      });
-
-      data[y][x] = strength;
-      min = Math.min(min, strength);
-      max = Math.max(max, strength);
+// Convert real-world distance to a human-readable format
+export const formatRealDistance = (pixelDistance: number, scale: number | null): string => {
+  if (!scale) return `${pixelDistance.toFixed(1)} pixels`;
+  
+  const feet = pixelDistance / scale;
+  
+  if (feet < 1) {
+    // Show in inches if less than a foot
+    return `${(feet * 12).toFixed(1)}"`;
+  } else {
+    // Show in feet and inches format for clarity
+    const wholeFeet = Math.floor(feet);
+    const inches = Math.round((feet - wholeFeet) * 12);
+    
+    if (inches === 0) {
+      return `${wholeFeet}'`;
+    } else if (inches === 12) {
+      return `${wholeFeet + 1}'`;
+    } else {
+      return `${wholeFeet}' ${inches}"`;
     }
   }
+};
 
-  return { data, min, max };
+// Calculate coverage percentage at different signal levels
+export const calculateCoverage = (
+  floorPlan: FloorPlan,
+  routerPosition: Position,
+  scale: number | null
+): { excellent: number, good: number, fair: number, poor: number, bad: number } => {
+  const sampleSize = 1000;
+  let excellent = 0, good = 0, fair = 0, poor = 0, bad = 0;
+  
+  for (let i = 0; i < sampleSize; i++) {
+    const sampleX = Math.random() * floorPlan.width;
+    const sampleY = Math.random() * floorPlan.height;
+    
+    const strength = calculateSignalAtPoint(floorPlan, routerPosition, {
+      x: sampleX,
+      y: sampleY,
+    }, scale);
+    
+    if (strength > -50) excellent++;
+    else if (strength > -60) good++;
+    else if (strength > -70) fair++;
+    else if (strength > -80) poor++;
+    else bad++;
+  }
+  
+  return {
+    excellent: excellent / sampleSize * 100,
+    good: good / sampleSize * 100,
+    fair: fair / sampleSize * 100,
+    poor: poor / sampleSize * 100,
+    bad: bad / sampleSize * 100
+  };
 };
