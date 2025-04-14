@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { WALL_MATERIALS } from "@/utils/constants";
 
 interface DrawingToolsProps {
   selectedMaterial: WallMaterial;
@@ -29,15 +30,16 @@ interface DrawingToolsProps {
   canRedo: boolean;
 }
 
-const materialOptions = [
-  { value: "drywall", label: "Drywall" },
-  { value: "concrete", label: "Concrete" },
-  { value: "glass", label: "Glass" },
-  { value: "wood", label: "Wood" },
-  { value: "metal", label: "Metal" },
-  { value: "brick", label: "Brick" },
-  { value: "other", label: "Other" },
-];
+// const materialOptions = [
+//   { value: "drywall", label: "Drywall" },
+//   { value: "concrete", label: "Concrete" },
+//   { value: "glass", label: "Glass" },
+//   { value: "wood", label: "Wood" },
+//   { value: "metal", label: "Metal" },
+//   { value: "brick", label: "Brick" },
+//   { value: "other", label: "Other" },
+// ];
+
 
 const DrawingTools: React.FC<DrawingToolsProps> = ({
   selectedMaterial,
@@ -60,7 +62,7 @@ const DrawingTools: React.FC<DrawingToolsProps> = ({
             <SelectValue placeholder="Select material" />
           </SelectTrigger>
           <SelectContent>
-            {materialOptions.map((option) => (
+            {WALL_MATERIALS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
