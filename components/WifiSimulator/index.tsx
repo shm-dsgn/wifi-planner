@@ -36,9 +36,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Add a new mode for scale calibration
-type AppMode = SimulationMode | "calibrate";
-
 const WifiSimulator = () => {
   const [floorPlan, setFloorPlan] = useLocalStorage("floorPlan", {
     walls: [] as Wall[],
@@ -55,7 +52,7 @@ const WifiSimulator = () => {
   const [currentWall, setCurrentWall] = useState<Partial<Wall> | null>(null);
   const [selectedMaterial, setSelectedMaterial] =
     useState<WallMaterial>("drywall");
-  const [mode, setMode] = useState<AppMode>("draw");
+  const [mode, setMode] = useState<SimulationMode>("draw");
   const [backgroundImage, setBackgroundImage] =
     useState<HTMLImageElement | null>(null);
   const [imageOpacity, setImageOpacity] = useState(0.5);

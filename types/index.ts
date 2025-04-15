@@ -1,6 +1,6 @@
 export type WallMaterial = 'drywall' | 'concrete' | 'glass' | 'wood' | 'metal' | 'brick' | 'other';
 
-export type SimulationMode = 'draw' | 'simulate';
+export type SimulationMode = 'draw' | 'simulate' | 'calibrate';
 
 export interface Position {
   x: number;
