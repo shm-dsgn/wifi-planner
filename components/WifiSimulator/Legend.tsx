@@ -32,7 +32,7 @@ const Legend: React.FC<LegendProps> = ({ mode }) => {
               <div key={level.label} className="flex items-center">
                 <div 
                   className="w-4 h-4 mr-2 rounded-md" 
-                  style={{ backgroundColor: level.color }} 
+                  style={{ backgroundColor: level.color, opacity: 0.5 }} 
                 />
                 <span>{level.label}</span>
               </div>

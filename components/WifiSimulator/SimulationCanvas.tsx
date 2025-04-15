@@ -126,9 +126,9 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
           <Circle
             x={routerPosition.x}
             y={routerPosition.y}
-            radius={10}
-            fill="#3498db"
-            stroke="#2980b9"
+            radius={5}
+            fill="#EB8232"
+            stroke="#9A4C11"
             strokeWidth={2}
             draggable={true}
             onDragStart={onRouterDragStart}

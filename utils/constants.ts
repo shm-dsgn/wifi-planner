@@ -1,5 +1,6 @@
 import { WallMaterial } from "@/types";
 
+//Canvas size in pixels
 export const defaultFloorPlanSize = {
   width: 1200,
   height: 650,
