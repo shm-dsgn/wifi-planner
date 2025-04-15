@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
             &copy; {new Date().getFullYear()} Nest. All rights reserved.
           </p>
           <p>
-            Built with ❤️ by{" "}
+            Built with 🧡 by{" "}
             <Link
               href="https://sohamdutta.in"
               target="_blank"

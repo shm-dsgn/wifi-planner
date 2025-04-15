@@ -2,7 +2,7 @@ import Image from "next/image";
 
 const Header: React.FC = () => {
     return (
-      <header className="bg-neutral-100 w-full">
+      <header className=" border-b-2 w-full">
         <div className="p-4 text-center mb-2">
           <div className="text-2xl font-medium flex flex-row w-full justify-center items-center gap-2">
             <Image src="/favicon.ico" alt="Nest Logo" width={24} height={24} /> 
