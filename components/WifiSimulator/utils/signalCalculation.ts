@@ -70,6 +70,15 @@ export const calculateSignalAtPoint = (
   return signalStrength;
 };
 
+// This function was missing in the original code
+export const calculateSignalFromDevice = (
+  floorPlan: FloorPlan,
+  device: NetworkDevice,
+  point: Position
+): number => {
+  return calculateSignalAtPoint(floorPlan, device, point);
+};
+
 // Calculate the best signal strength at a point from all devices
 export const calculateBestSignalAtPoint = (
   floorPlan: FloorPlan,
@@ -139,10 +148,19 @@ export const generateHeatmap = (
       const pointX = x * resolution;
       const pointY = y * resolution;
 
-      const strength = calculateSignalAtPoint(floorPlan, routerPosition, {
-        x: pointX,
-        y: pointY,
-      });
+      const strength = calculateSignalAtPoint(
+        floorPlan, 
+        { 
+          id: 'router-main', 
+          x: routerPosition.x, 
+          y: routerPosition.y, 
+          type: 'router' 
+        },
+        {
+          x: pointX,
+          y: pointY,
+        }
+      );
 
       data[y][x] = strength;
       min = Math.min(min, strength);
