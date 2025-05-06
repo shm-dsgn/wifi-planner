@@ -1,4 +1,3 @@
-// hooks/useWifiSimulation.ts
 import { useState, useEffect } from "react";
 import {
   Wall,
@@ -7,6 +6,7 @@ import {
   WallMaterial,
   SignalPoint,
   FloorPlan,
+  NetworkDevice
 } from "@/types";
 import {
   calculateSignalStrength
@@ -22,37 +22,28 @@ export function useWifiSimulation() {
     height: defaultFloorPlanSize.height,
   });
 
-  // Router position management
-  const [routerPosition, setRouterPosition] = useState<Position>({
+  // Initial router position (center of floor plan)
+  const initialRouterPosition: Position = {
     x: Math.floor(floorPlan.width / 2),
     y: Math.floor(floorPlan.height / 2),
-  });
+  };
+
+  // Network devices (router + extenders)
+  const [devices, setDevices] = useState<NetworkDevice[]>([
+    { id: 'router-main', x: initialRouterPosition.x, y: initialRouterPosition.y, type: 'router' }
+  ]);
 
   // Simulation state
   const [signalStrengthMap, setSignalStrengthMap] = useState<SignalPoint[]>([]);
   const [mode, setMode] = useState<SimulationMode>("draw");
-  const [isDraggingRouter, setIsDraggingRouter] = useState(false);
 
   // Calculate signal strength when needed
   useEffect(() => {
     if (mode === "simulate") {
-      const strengthMap = calculateSignalStrength(floorPlan, routerPosition);
+      const strengthMap = calculateSignalStrength(floorPlan, devices);
       setSignalStrengthMap(strengthMap);
     }
-  }, [routerPosition, floorPlan, mode]);
-
-  // Router drag handlers
-  const handleRouterDragStart = () => {
-    setIsDraggingRouter(true);
-  };
-
-  const handleRouterDragEnd = (e: any) => {
-    setRouterPosition({
-      x: e.target.x(),
-      y: e.target.y(),
-    });
-    setIsDraggingRouter(false);
-  };
+  }, [devices, floorPlan, mode]);
 
   // Simulation mode toggle
   const toggleMode = () => {
@@ -62,13 +53,10 @@ export function useWifiSimulation() {
   return {
     floorPlan,
     setFloorPlan,
-    routerPosition,
-    setRouterPosition,
+    devices,
+    setDevices,
     signalStrengthMap,
     mode,
     toggleMode,
-    isDraggingRouter,
-    handleRouterDragStart,
-    handleRouterDragEnd,
   };
 }

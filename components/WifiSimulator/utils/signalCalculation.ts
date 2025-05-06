@@ -1,4 +1,4 @@
-import { FloorPlan, Position, SignalPoint } from "@/types";
+import { FloorPlan, NetworkDevice,Position, SignalPoint } from "@/types";
 import { lineIntersect } from "./lineIntersection";
 
 // Signal attenuation values for different materials (in dB)
@@ -29,24 +29,26 @@ const getSignalColor = (strength: number): string => {
 // Calculate signal strength at a given point
 export const calculateSignalAtPoint = (
   floorPlan: FloorPlan,
-  routerPosition: Position,
+  device: NetworkDevice,
   point: Position
 ): number => {
   // Calculate distance
   const distance = Math.sqrt(
-    Math.pow(routerPosition.x - point.x, 2) +
-      Math.pow(routerPosition.y - point.y, 2)
+    Math.pow(device.x - point.x, 2) +
+      Math.pow(device.y - point.y, 2)
   );
 
   // Calculate base signal strength based on distance
-  let signalStrength = BASE_SIGNAL_STRENGTH - distance / DISTANCE_FACTOR;
+  // Extenders have slightly lower base signal than the main router
+  const deviceBasePower = device.type === 'router' ? BASE_SIGNAL_STRENGTH : BASE_SIGNAL_STRENGTH - 5;
+  let signalStrength = deviceBasePower - distance / DISTANCE_FACTOR;
 
   // Check for wall intersections
   for (const wall of floorPlan.walls) {
     // Define the line from router to the point
     const line = {
-      x1: routerPosition.x,
-      y1: routerPosition.y,
+      x1: device.x,
+      y1: device.y,
       x2: point.x,
       y2: point.y,
     };
@@ -68,28 +70,44 @@ export const calculateSignalAtPoint = (
   return signalStrength;
 };
 
+// Calculate the best signal strength at a point from all devices
+export const calculateBestSignalAtPoint = (
+  floorPlan: FloorPlan,
+  devices: NetworkDevice[],
+  point: Position
+): { strength: number, sourceDeviceId: string } => {
+  let bestStrength = -Infinity;
+  let sourceDeviceId = '';
+
+  for (const device of devices) {
+    const strength = calculateSignalFromDevice(floorPlan, device, point);
+    if (strength > bestStrength) {
+      bestStrength = strength;
+      sourceDeviceId = device.id;
+    }
+  }
+
+  return { strength: bestStrength, sourceDeviceId };
+};
+
 // Calculate signal strength for the entire floor plan
 export const calculateSignalStrength = (
   floorPlan: FloorPlan,
-  routerPosition: Position,
+  devices: NetworkDevice[],
   resolution: number = 10
 ): SignalPoint[] => {
   const points: SignalPoint[] = [];
 
-  console.log(floorPlan);
-
   // Calculate signal strength at grid points
   for (let x = 0; x <= floorPlan.width; x += resolution) {
     for (let y = 0; y <= floorPlan.height; y += resolution) {
-      const strength = calculateSignalAtPoint(floorPlan, routerPosition, {
-        x,
-        y,
-      });
+      const { strength, sourceDeviceId } = calculateBestSignalAtPoint(floorPlan, devices, { x, y });
 
       points.push({
         x,
         y,
         strength,
+        sourceDeviceId,
         color: getSignalColor(strength),
       });
     }
