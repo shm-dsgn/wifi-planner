@@ -80,6 +80,7 @@ export function useWifiSimulation() {
 
   // Handle device drag
   const handleDeviceDrag = (id: string, newPosition: Position) => {
+    // Update devices state
     setDevices(prev => 
       prev.map(device => 
         device.id === id 
@@ -96,6 +97,7 @@ export function useWifiSimulation() {
             ? { ...device, x: newPosition.x, y: newPosition.y }
             : device
         );
+        
         const strengthMap = calculateSignalStrength(floorPlan, updatedDevices);
         setSignalStrengthMap(strengthMap);
       } catch (error) {

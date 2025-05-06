@@ -19,6 +19,7 @@ const WifiSimulator = () => {
     floorPlan,
     setFloorPlan,
     devices,
+    setDevices,
     signalStrengthMap,
     mode,
     toggleMode,
@@ -91,9 +92,25 @@ const WifiSimulator = () => {
 
   // Handle device drag end
   const handleDeviceDragEnd = (id: string, e: any) => {
-    const position = { x: e.target.x(), y: e.target.y() };
-    handleDeviceDrag(id, position);
+    const position = {
+      x: e.target.x(),
+      y: e.target.y()
+    };
+    
+    // Update device position
+    const updatedDevices = devices.map(device => 
+      device.id === id 
+        ? { ...device, x: position.x, y: position.y }
+        : device
+    );
+    
+    setDevices(updatedDevices);
     setDraggingDeviceId(null);
+    
+    // Recalculate signal strength if in simulation mode
+    if (mode === "simulate") {
+      handleDeviceDrag(id, position);
+    }
   };
 
   return (

@@ -157,19 +157,6 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
                 onDragStart={() => onDeviceDragStart(device.id)}
                 onDragEnd={(e) => onDeviceDragEnd(device.id, e)}
               />
-              
-              {/* Signal Range Visual */}
-              {mode === "simulate" && (
-                <Circle
-                  x={device.x}
-                  y={device.y}
-                  radius={device.type === 'router' ? 50 : 35}
-                  stroke={device.type === 'router' ? "#EB8232" : "#32A4EB"}
-                  strokeWidth={1}
-                  dash={[2, 2]}
-                  opacity={0.3}
-                />
-              )}
             </Group>
           ))}
         </Layer>
