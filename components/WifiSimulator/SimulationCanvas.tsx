@@ -1,6 +1,7 @@
+
 // components/WifiSimulator/SimulationCanvas.tsx
 import React from "react";
-import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line } from "react-konva";
+import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line, Group, Text } from "react-konva";
 import { SimulationMode, Wall, Position, SignalPoint, NetworkDevice } from "@/types";
 
 interface SimulationCanvasProps {
@@ -42,6 +43,10 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   onDeviceDragEnd,
   onCanvasClick,
 }) => {
+  // Find main router
+  const router = devices.find(device => device.type === 'router');
+  const extenders = devices.filter(device => device.type === 'extender');
+
   return (
     <div className="canvas-container mx-auto" style={{ width: `${width}px` }}>
       <Stage
@@ -128,19 +133,44 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
         {/* Network Devices Layer */}
         <Layer>
-          {devices.map((device) => (
-            <Circle
-              key={device.id}
-              x={device.x}
-              y={device.y}
-              radius={device.type === 'router' ? 7 : 5}
-              fill={device.type === 'router' ? "#EB8232" : "#32A4EB"}
-              stroke={device.type === 'router' ? "#9A4C11" : "#1165A4"}
-              strokeWidth={2}
-              draggable={mode === "simulate"}
-              onDragStart={() => onDeviceDragStart(device.id)}
-              onDragEnd={(e) => onDeviceDragEnd(device.id, e)}
+          {/* Extender-to-Router connections */}
+          {mode === "simulate" && router && extenders.map((extender) => (
+            <Line
+              key={`conn-${extender.id}`}
+              points={[router.x, router.y, extender.x, extender.y]}
+              stroke="#87CEEB"
+              strokeWidth={1}
+              dash={[5, 3]}
+              opacity={0.7}
             />
+          ))}
+          
+          {/* Network Devices */}
+          {devices.map((device) => (
+            <Group key={device.id}>
+              <Circle
+                x={device.x}
+                y={device.y}
+                radius={device.type === 'router' ? 8 : 6}
+                fill={device.type === 'router' ? "#EB8232" : "#32A4EB"}
+                stroke={device.type === 'router' ? "#9A4C11" : "#1165A4"}
+                strokeWidth={2}
+                draggable={mode === "simulate"}
+                onDragStart={() => onDeviceDragStart(device.id)}
+                onDragEnd={(e) => onDeviceDragEnd(device.id, e)}
+              />
+              
+              {/* Signal Range Visual */}
+              {mode === "simulate" && (
+                <Circle
+                  x={device.x}
+                  y={device.y}
+                  radius={device.type === 'router' ? 8 : 6}
+                  fill={device.type === 'router' ? "#EB8232" : "#32A4EB"}
+                  opacity={0.5}
+                />
+              )}
+            </Group>
           ))}
         </Layer>
       </Stage>

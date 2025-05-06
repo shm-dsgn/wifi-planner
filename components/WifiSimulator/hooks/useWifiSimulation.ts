@@ -3,7 +3,6 @@ import {
   Wall,
   Position,
   SimulationMode,
-  WallMaterial,
   SignalPoint,
   FloorPlan,
   NetworkDevice
@@ -36,18 +35,63 @@ export function useWifiSimulation() {
   // Simulation state
   const [signalStrengthMap, setSignalStrengthMap] = useState<SignalPoint[]>([]);
   const [mode, setMode] = useState<SimulationMode>("draw");
+  
+  // Extender placement mode
+  const [isPlacingExtender, setIsPlacingExtender] = useState(false);
 
   // Calculate signal strength when needed
   useEffect(() => {
     if (mode === "simulate") {
-      const strengthMap = calculateSignalStrength(floorPlan, devices);
-      setSignalStrengthMap(strengthMap);
+      try {
+        const strengthMap = calculateSignalStrength(floorPlan, devices);
+        setSignalStrengthMap(strengthMap);
+      } catch (error) {
+        console.error("Error calculating signal strength:", error);
+        // Fallback to empty map if calculation fails
+        setSignalStrengthMap([]);
+      }
     }
   }, [devices, floorPlan, mode]);
 
   // Simulation mode toggle
   const toggleMode = () => {
     setMode(mode === "draw" ? "simulate" : "draw");
+    // Exit extender placement mode when toggling
+    if (isPlacingExtender) setIsPlacingExtender(false);
+  };
+
+  // Add extender at specific position
+  const addExtender = (position: Position) => {
+    const newExtender: NetworkDevice = {
+      id: `extender-${Date.now()}`,
+      x: position.x,
+      y: position.y,
+      type: 'extender'
+    };
+    
+    setDevices(prev => [...prev, newExtender]);
+    setIsPlacingExtender(false); // Exit placement mode
+  };
+
+  // Remove extender by ID
+  const removeExtender = (id: string) => {
+    setDevices(prev => prev.filter(device => device.id !== id));
+  };
+
+  // Handle device drag
+  const handleDeviceDrag = (id: string, newPosition: Position) => {
+    setDevices(prev => 
+      prev.map(device => 
+        device.id === id 
+          ? { ...device, x: newPosition.x, y: newPosition.y }
+          : device
+      )
+    );
+  };
+
+  // Toggle extender placement mode
+  const toggleExtenderPlacement = () => {
+    setIsPlacingExtender(prev => !prev);
   };
 
   return {
@@ -58,5 +102,11 @@ export function useWifiSimulation() {
     signalStrengthMap,
     mode,
     toggleMode,
+    isPlacingExtender,
+    setIsPlacingExtender,
+    addExtender,
+    removeExtender,
+    handleDeviceDrag,
+    toggleExtenderPlacement
   };
 }

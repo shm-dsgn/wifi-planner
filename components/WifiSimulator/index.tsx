@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useWifiSimulation } from "./hooks/useWifiSimulation";
 import { useWallDrawing } from "./hooks/useWallDrawing";
 import { useBackgroundImage } from "./hooks/useBackgroundImage";
-import { useNetworkDevices } from "./hooks/useNetworkDevices";
 import SimulationCanvas from "./SimulationCanvas";
 import DrawingTools from "./DrawingTools";
 import Legend from "./Legend";
@@ -19,30 +18,16 @@ const WifiSimulator = () => {
   const {
     floorPlan,
     setFloorPlan,
+    devices,
     signalStrengthMap,
     mode,
     toggleMode,
-  } = useWifiSimulation();
-
-  // Network devices management (router + extenders)
-  const initialRouterPosition: Position = {
-    x: Math.floor(floorPlan.width / 2),
-    y: Math.floor(floorPlan.height / 2)
-  };
-
-  const {
-    devices,
-    isDraggingDevice,
-    showExtenderControls,
+    isPlacingExtender,
+    setIsPlacingExtender,
     addExtender,
     removeExtender,
-    handleDeviceDragStart,
-    handleDeviceDragEnd,
-    toggleExtenderControls,
-  } = useNetworkDevices(initialRouterPosition);
-
-  // Extender placement state
-  const [isPlacingExtender, setIsPlacingExtender] = useState(false);
+    handleDeviceDrag,
+  } = useWifiSimulation();
 
   // Wall drawing logic
   const {
@@ -72,6 +57,14 @@ const WifiSimulator = () => {
     handleOpacityChange,
   } = useBackgroundImage(floorPlan.width, floorPlan.height);
 
+  // Extender controls
+  const [showExtenderControls, setShowExtenderControls] = React.useState(false);
+
+  // Toggle extender controls visibility
+  const toggleExtenderControls = () => {
+    setShowExtenderControls(prev => !prev);
+  };
+
   // Handle clicking to place extender
   const handleCanvasClick = (e: any) => {
     if (mode === "simulate" && isPlacingExtender) {
@@ -82,15 +75,18 @@ const WifiSimulator = () => {
         x: pointerPosition.x,
         y: pointerPosition.y
       });
-      
-      // Exit placement mode after placing
-      setIsPlacingExtender(false);
     }
   };
 
   // Toggle extender placement mode
   const handleToggleExtenderPlacement = () => {
     setIsPlacingExtender(prev => !prev);
+  };
+
+  // Handle device drag end
+  const handleDeviceDragEnd = (id: string, e: any) => {
+    const position = { x: e.target.x(), y: e.target.y() };
+    handleDeviceDrag(id, position);
   };
 
   return (
@@ -149,11 +145,8 @@ const WifiSimulator = () => {
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
-        onDeviceDragStart={handleDeviceDragStart}
-        onDeviceDragEnd={(id, e) => {
-          const position = { x: e.target.x(), y: e.target.y() };
-          handleDeviceDragEnd(id, position);
-        }}
+        onDeviceDragStart={() => {}} // No-op as we handle dragging in onDeviceDragEnd
+        onDeviceDragEnd={handleDeviceDragEnd}
         onCanvasClick={handleCanvasClick}
       />
 
