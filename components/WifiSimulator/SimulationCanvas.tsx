@@ -1,5 +1,3 @@
-
-// components/WifiSimulator/SimulationCanvas.tsx
 import React from "react";
 import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line, Group, Text } from "react-konva";
 import { SimulationMode, Wall, Position, SignalPoint, NetworkDevice } from "@/types";
@@ -165,9 +163,11 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
                 <Circle
                   x={device.x}
                   y={device.y}
-                  radius={device.type === 'router' ? 8 : 6}
-                  fill={device.type === 'router' ? "#EB8232" : "#32A4EB"}
-                  opacity={0.5}
+                  radius={device.type === 'router' ? 50 : 35}
+                  stroke={device.type === 'router' ? "#EB8232" : "#32A4EB"}
+                  strokeWidth={1}
+                  dash={[2, 2]}
+                  opacity={0.3}
                 />
               )}
             </Group>

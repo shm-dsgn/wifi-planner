@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useWifiSimulation } from "./hooks/useWifiSimulation";
 import { useWallDrawing } from "./hooks/useWallDrawing";
 import { useBackgroundImage } from "./hooks/useBackgroundImage";
@@ -59,6 +59,7 @@ const WifiSimulator = () => {
 
   // Extender controls
   const [showExtenderControls, setShowExtenderControls] = React.useState(false);
+  const [draggingDeviceId, setDraggingDeviceId] = useState<string | null>(null);
 
   // Toggle extender controls visibility
   const toggleExtenderControls = () => {
@@ -83,10 +84,16 @@ const WifiSimulator = () => {
     setIsPlacingExtender(prev => !prev);
   };
 
+  // Handle device drag start
+  const handleDeviceDragStart = (id: string) => {
+    setDraggingDeviceId(id);
+  };
+
   // Handle device drag end
   const handleDeviceDragEnd = (id: string, e: any) => {
     const position = { x: e.target.x(), y: e.target.y() };
     handleDeviceDrag(id, position);
+    setDraggingDeviceId(null);
   };
 
   return (
@@ -145,7 +152,7 @@ const WifiSimulator = () => {
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
-        onDeviceDragStart={() => {}} // No-op as we handle dragging in onDeviceDragEnd
+        onDeviceDragStart={handleDeviceDragStart}
         onDeviceDragEnd={handleDeviceDragEnd}
         onCanvasClick={handleCanvasClick}
       />

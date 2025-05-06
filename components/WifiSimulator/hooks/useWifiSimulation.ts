@@ -87,6 +87,21 @@ export function useWifiSimulation() {
           : device
       )
     );
+    
+    // Recalculate signal map after device is moved
+    if (mode === "simulate") {
+      try {
+        const updatedDevices = devices.map(device => 
+          device.id === id 
+            ? { ...device, x: newPosition.x, y: newPosition.y }
+            : device
+        );
+        const strengthMap = calculateSignalStrength(floorPlan, updatedDevices);
+        setSignalStrengthMap(strengthMap);
+      } catch (error) {
+        console.error("Error updating signal strength:", error);
+      }
+    }
   };
 
   // Toggle extender placement mode
