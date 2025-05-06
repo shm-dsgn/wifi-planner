@@ -7,7 +7,6 @@ import { useWallDrawing } from "./hooks/useWallDrawing";
 import { useBackgroundImage } from "./hooks/useBackgroundImage";
 import SimulationCanvas from "./SimulationCanvas";
 import DrawingTools from "./DrawingTools";
-import SimulationControls from "./SimulationControls";
 import Legend from "./Legend";
 import Instructions from "./Instructions";
 import BackgroundImageControls from "./BackgroundImageControls";
@@ -25,7 +24,6 @@ const WifiSimulator = () => {
     isDraggingRouter,
     handleRouterDragStart,
     handleRouterDragEnd,
-    handleFindOptimalPosition,
   } = useWifiSimulation();
 
   // Wall drawing logic
@@ -61,7 +59,7 @@ const WifiSimulator = () => {
       <Instructions mode={mode} wallWidth={WALL_WIDTH} />
 
       <div className="controls flex flex-wrap gap-8 items-end mb-4">
-        {mode === "draw" ? (
+        {mode === "draw" && (
           <DrawingTools
             selectedMaterial={selectedMaterial}
             onMaterialChange={handleMaterialChange}
@@ -70,10 +68,6 @@ const WifiSimulator = () => {
             onRedo={handleRedo}
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
-          />
-        ) : (
-          <SimulationControls
-            onFindOptimalPosition={handleFindOptimalPosition}
           />
         )}
 

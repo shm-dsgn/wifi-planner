@@ -9,8 +9,7 @@ import {
   FloorPlan,
 } from "@/types";
 import {
-  calculateSignalStrength,
-  findOptimalPosition,
+  calculateSignalStrength
 } from "@/components/WifiSimulator/utils/signalCalculation";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { defaultFloorPlanSize } from "@/utils/constants";
@@ -60,12 +59,6 @@ export function useWifiSimulation() {
     setMode(mode === "draw" ? "simulate" : "draw");
   };
 
-  // Optimal position finder
-  const handleFindOptimalPosition = () => {
-    const bestPosition = findOptimalPosition(floorPlan);
-    setRouterPosition(bestPosition);
-  };
-
   return {
     floorPlan,
     setFloorPlan,
@@ -77,6 +70,5 @@ export function useWifiSimulation() {
     isDraggingRouter,
     handleRouterDragStart,
     handleRouterDragEnd,
-    handleFindOptimalPosition,
   };
 }

@@ -19,8 +19,7 @@ const Instructions: React.FC<InstructionsProps> = ({ mode, wallWidth }) => {
         </span>
       ) : (
         <span className="text-sm text-gray-500">
-          Drag the blue router to see how signal strength changes. Use
-          &quot;Find Optimal Position&quot; to automatically place the router.
+          Drag the orange router to see how signal strength changes.
         </span>
       )}
     </div>

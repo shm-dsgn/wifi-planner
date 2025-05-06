@@ -98,49 +98,6 @@ export const calculateSignalStrength = (
   return points;
 };
 
-// Find optimal router position
-export const findOptimalPosition = (floorPlan: FloorPlan): Position => {
-  const gridSize = 20; // Resolution for checking positions
-  let bestPosition = { x: floorPlan.width / 2, y: floorPlan.height / 2 };
-  let bestAverageStrength = -Infinity;
-
-  // Try different positions
-  for (let x = 0; x <= floorPlan.width; x += gridSize) {
-    for (let y = 0; y <= floorPlan.height; y += gridSize) {
-      const testPosition: Position = { x, y };
-
-      // Sample points throughout the floor plan
-      const sampleSize = 50;
-      let totalStrength = 0;
-      let minStrength = Infinity;
-
-      for (let i = 0; i < sampleSize; i++) {
-        const sampleX = Math.random() * floorPlan.width;
-        const sampleY = Math.random() * floorPlan.height;
-
-        const strength = calculateSignalAtPoint(floorPlan, testPosition, {
-          x: sampleX,
-          y: sampleY,
-        });
-
-        totalStrength += strength;
-        minStrength = Math.min(minStrength, strength);
-      }
-
-      // Calculate average strength with penalty for very weak spots
-      const averageStrength =
-        totalStrength / sampleSize + (minStrength < -85 ? -10 : 0);
-
-      if (averageStrength > bestAverageStrength) {
-        bestAverageStrength = averageStrength;
-        bestPosition = testPosition;
-      }
-    }
-  }
-
-  return bestPosition;
-};
-
 // Generate a heatmap representation of signal strength
 export const generateHeatmap = (
   floorPlan: FloorPlan,
