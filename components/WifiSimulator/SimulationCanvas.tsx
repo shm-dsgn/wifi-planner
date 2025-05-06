@@ -1,24 +1,25 @@
-// components/WifiSimulator/SimulationCanvas.tsx
 import React from "react";
-import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line } from "react-konva";
-import { SimulationMode, Wall, Position, SignalPoint } from "@/types";
+import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line, Group, Text } from "react-konva";
+import { SimulationMode, Wall, Position, SignalPoint, NetworkDevice } from "@/types";
 
 interface SimulationCanvasProps {
   width: number;
   height: number;
   walls: Wall[];
   currentWall: Partial<Wall> | null;
-  routerPosition: Position;
+  devices: NetworkDevice[];
   signalStrengthMap: SignalPoint[];
   backgroundImage: HTMLImageElement | null;
   imageOpacity: number;
   mode: SimulationMode;
   wallWidth: number;
+  isPlacingExtender: boolean;
   onMouseDown: (e: any) => void;
   onMouseMove: (e: any) => void;
   onMouseUp: () => void;
-  onRouterDragStart: () => void;
-  onRouterDragEnd: (e: any) => void;
+  onDeviceDragStart: (id: string) => void;
+  onDeviceDragEnd: (id: string, e: any) => void;
+  onCanvasClick: (e: any) => void;
 }
 
 const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
@@ -26,18 +27,24 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   height,
   walls,
   currentWall,
-  routerPosition,
+  devices,
   signalStrengthMap,
   backgroundImage,
   imageOpacity,
   mode,
   wallWidth,
+  isPlacingExtender,
   onMouseDown,
   onMouseMove,
   onMouseUp,
-  onRouterDragStart,
-  onRouterDragEnd,
+  onDeviceDragStart,
+  onDeviceDragEnd,
+  onCanvasClick,
 }) => {
+  // Find main router
+  const router = devices.find(device => device.type === 'router');
+  const extenders = devices.filter(device => device.type === 'extender');
+
   return (
     <div className="canvas-container mx-auto" style={{ width: `${width}px` }}>
       <Stage
@@ -46,8 +53,9 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
         onMouseDown={mode === "draw" ? onMouseDown : undefined}
         onMouseMove={mode === "draw" ? onMouseMove : undefined}
         onMouseUp={mode === "draw" ? onMouseUp : undefined}
+        onClick={mode === "simulate" && isPlacingExtender ? onCanvasClick : undefined}
         className="bg-white border border-gray-300"
-        style={{ display: "block" }}
+        style={{ display: "block", cursor: isPlacingExtender ? "crosshair" : "default" }}
       >
         {/* Background Layer */}
         <Layer>
@@ -121,19 +129,36 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
           )}
         </Layer>
 
-        {/* Router Layer */}
+        {/* Network Devices Layer */}
         <Layer>
-          <Circle
-            x={routerPosition.x}
-            y={routerPosition.y}
-            radius={5}
-            fill="#EB8232"
-            stroke="#9A4C11"
-            strokeWidth={2}
-            draggable={true}
-            onDragStart={onRouterDragStart}
-            onDragEnd={onRouterDragEnd}
-          />
+          {/* Extender-to-Router connections */}
+          {mode === "simulate" && router && extenders.map((extender) => (
+            <Line
+              key={`conn-${extender.id}`}
+              points={[router.x, router.y, extender.x, extender.y]}
+              stroke="#87CEEB"
+              strokeWidth={1}
+              dash={[5, 3]}
+              opacity={0.7}
+            />
+          ))}
+          
+          {/* Network Devices */}
+          {devices.map((device) => (
+            <Group key={device.id}>
+              <Circle
+                x={device.x}
+                y={device.y}
+                radius={device.type === 'router' ? 8 : 6}
+                fill={device.type === 'router' ? "#EB8232" : "#32A4EB"}
+                stroke={device.type === 'router' ? "#9A4C11" : "#1165A4"}
+                strokeWidth={2}
+                draggable={mode === "simulate"}
+                onDragStart={() => onDeviceDragStart(device.id)}
+                onDragEnd={(e) => onDeviceDragEnd(device.id, e)}
+              />
+            </Group>
+          ))}
         </Layer>
       </Stage>
     </div>

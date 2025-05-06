@@ -1,3 +1,5 @@
+export type DeviceType = 'router' | 'extender';
+
 export type WallMaterial = 'drywall' | 'concrete' | 'glass' | 'wood' | 'metal' | 'brick';
 
 export type SimulationMode = 'draw' | 'simulate';
@@ -5,6 +7,13 @@ export type SimulationMode = 'draw' | 'simulate';
 export interface Position {
   x: number;
   y: number;
+}
+
+export interface NetworkDevice {
+  id: string;
+  x: number;
+  y: number;
+  type: DeviceType;
 }
 
 export interface Wall {
@@ -23,6 +32,7 @@ export interface SignalPoint {
   y: number;
   strength: number;
   color: string;
+  sourceDeviceId?: string; // ID of the device providing the signal
 }
 
 export interface FloorPlan {

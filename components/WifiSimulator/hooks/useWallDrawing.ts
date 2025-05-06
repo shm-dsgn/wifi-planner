@@ -18,7 +18,7 @@ export function useWallDrawing(
   const [historyIndex, setHistoryIndex] = useState(-1);
 
   // Fixed wall width
-  const WALL_WIDTH = 10;
+  const WALL_WIDTH = 5;
 
   // Initialize history when component mounts
   useEffect(() => {
