@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Stage, Layer, Rect, Circle, Image as KonvaImage, Line, Group, Text } from "react-konva";
 import { SimulationMode, Wall, Position, SignalPoint, NetworkDevice } from "@/types";
 
@@ -20,6 +20,8 @@ interface SimulationCanvasProps {
   onDeviceDragStart: (id: string) => void;
   onDeviceDragEnd: (id: string, e: any) => void;
   onCanvasClick: (e: any) => void;
+  scale: { value: number; unit: string } | null;
+  setScale: React.Dispatch<React.SetStateAction<{ value: number; unit: string } | null>>;
 }
 
 const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
@@ -40,10 +42,24 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   onDeviceDragStart,
   onDeviceDragEnd,
   onCanvasClick,
+  scale,
+  setScale,
 }) => {
+  const [hoveredWallId, setHoveredWallId] = useState<string | null>(null);
+
   // Find main router
   const router = devices.find(device => device.type === 'router');
   const extenders = devices.filter(device => device.type === 'extender');
+
+  // Helper to get wall name (A, B, C, ...)
+  const getWallName = (idx: number) => String.fromCharCode(65 + idx);
+
+  // Helper to get wall length in px and real units
+  const getWallLengths = (wall: Wall) => {
+    const px = Math.sqrt(Math.pow(wall.x2 - wall.x1, 2) + Math.pow(wall.y2 - wall.y1, 2));
+    const real = scale ? px * scale.value : null;
+    return { px, real };
+  };
 
   return (
     <div className="canvas-container mx-auto" style={{ width: `${width}px` }}>
@@ -100,16 +116,40 @@ const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
         {/* Walls Layer */}
         <Layer>
-          {walls.map((wall) => (
-            <Line
-              key={wall.id}
-              points={[wall.x1, wall.y1, wall.x2, wall.y2]}
-              stroke={wall.color}
-              strokeWidth={wall.width || wallWidth}
-              lineCap="round"
-              lineJoin="round"
-            />
-          ))}
+          {walls.map((wall, idx) => {
+            const isHovered = wall.id === hoveredWallId;
+            const { px, real } = getWallLengths(wall);
+            const midX = (wall.x1 + wall.x2) / 2;
+            const midY = (wall.y1 + wall.y2) / 2;
+            return (
+              <React.Fragment key={wall.id}>
+                <Line
+                  points={[wall.x1, wall.y1, wall.x2, wall.y2]}
+                  stroke={wall.color}
+                  strokeWidth={wall.width || wallWidth}
+                  lineCap="round"
+                  lineJoin="round"
+                  onMouseEnter={() => setHoveredWallId(wall.id)}
+                  onMouseLeave={() => setHoveredWallId(null)}
+                />
+                {isHovered && (
+                  <Text
+                    x={midX}
+                    y={midY - 20}
+                    text={`Wall ${getWallName(idx)}\n${px.toFixed(1)} px${scale ? ` / ${(real!).toFixed(2)} ${scale.unit}` : ""}`}
+                    fontSize={16}
+                    fill="#333"
+                    align="center"
+                    verticalAlign="middle"
+                    offsetX={60}
+                    offsetY={10}
+                    padding={4}
+                    background="rgba(255,255,255,0.8)"
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
 
           {/* Current Wall being drawn */}
           {currentWall && (

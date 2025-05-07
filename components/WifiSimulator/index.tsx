@@ -61,6 +61,7 @@ const WifiSimulator = () => {
   // Extender controls
   const [showExtenderControls, setShowExtenderControls] = React.useState(false);
   const [draggingDeviceId, setDraggingDeviceId] = useState<string | null>(null);
+  const [scale, setScale] = useState<{ value: number; unit: string } | null>(null); // real-world units per pixel and unit
 
   // Toggle extender controls visibility
   const toggleExtenderControls = () => {
@@ -127,6 +128,9 @@ const WifiSimulator = () => {
             onRedo={handleRedo}
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
+            scale={scale}
+            setScale={setScale}
+            walls={floorPlan.walls}
           />
         )}
 
@@ -172,6 +176,8 @@ const WifiSimulator = () => {
         onDeviceDragStart={handleDeviceDragStart}
         onDeviceDragEnd={handleDeviceDragEnd}
         onCanvasClick={handleCanvasClick}
+        scale={scale}
+        setScale={setScale}
       />
 
       <Legend mode={mode} />
